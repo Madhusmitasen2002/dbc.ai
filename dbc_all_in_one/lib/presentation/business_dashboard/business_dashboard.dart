@@ -12,46 +12,45 @@ import './widgets/business_header_widget.dart';
 import './widgets/metrics_card_widget.dart';
 import './widgets/quick_action_card_widget.dart';
 import './widgets/security_notification_widget.dart';
+import './widgets/notification_carousel_widget.dart';
 import '../live_camera_view/live_camera_view.dart';
 import '../inventory_management/inventory_management.dart';
 import '../staff_management/staff_management.dart';
 
-/// Business Dashboard - Central command center for small business operations
-/// Optimized for quick mobile oversight and critical task access
 class BusinessDashboard extends StatefulWidget {
   const BusinessDashboard({super.key});
 
   @override   
   State<BusinessDashboard> createState() => _BusinessDashboardState();
-
 }
 
 class _BusinessDashboardState extends State<BusinessDashboard> {
   Widget _getScreen() {
-  switch (_currentBottomNavIndex) {
-    case 0:
-      return _buildDashboard();
-    case 1:
-      return LiveCameraView(); // loads only when opened
-    case 2:
-      return InventoryManagement();
-    case 3:
-      return StaffManagement();
-    case 4:
-      return _buildMore();
-    default:
-      return _buildDashboard();
+    switch (_currentBottomNavIndex) {
+      case 0:
+        return _buildDashboard();
+      case 1:
+        return LiveCameraView();
+      case 2:
+        return InventoryManagement();
+      case 3:
+        return StaffManagement();
+      case 4:
+        return _buildMore();
+      default:
+        return _buildDashboard();
+    }
   }
-}
 
   int _currentBottomNavIndex = 0;
   bool _isRefreshing = false;
+  bool _showNotificationCarousel = true;
 
-  // Mock business data
   final String businessName = "DBC Cafe & Bistro";
   final int notificationCount = 5;
 
-  // Mock metrics data - Comprehensive business overview
+  late List<NotificationItem> _notificationItems;
+
   final List<Map<String, dynamic>> metricsData = [
     {
       "title": "Payments",
@@ -159,70 +158,68 @@ class _BusinessDashboardState extends State<BusinessDashboard> {
     },
   ];
 
-  // Mock quick actions data - Essential operations
   List<Map<String, dynamic>> get _quickActions => [
-        {
-  "title": "Invoices",
-  "icon": "receipt_long",
-  "color": const Color(0xFF10B981),
-  "route": AppRoutes.invoiceManagementCenter,
-},
-        {
-          "title": "View Live Cameras",
-          "icon": "videocam",
-          "color": Color(0xFF6B46C1),
-          "route": "/live-camera-view",
-        },
-        {
-          "title": "News & Updates",
-          "icon": "article",
-          "color": Color(0xFFEC4899),
-          "route": "/news-updates-hub",
-        },
-        {
-          "title": "Add Inventory",
-          "icon": "add_box",
-          "color": Color(0xFF10B981),
-          "route": "/inventory-management",
-        },
-        {
-          "title": "Mark Attendance",
-          "icon": "how_to_reg",
-          "color": Color(0xFF0EA5E9),
-          "route": "/staff-management",
-        },
-        {
-          "title": "Emergency Alerts",
-          "icon": "warning",
-          "color": Color(0xFFEF4444),
-          "route": "/security-events-history",
-        },
-        {
-          "title": "Process Orders",
-          "icon": "shopping_cart",
-          "color": Color(0xFF8B5CF6),
-          "route": "/order-management-hub",
-        },
-        {
-          "title": "Hiring Portal",
-          "icon": "work",
-          "color": Color(0xFFF97316),
-          "route": "/hiring-marketplace",
-        },
-        {
-          "title": "Vendor Marketplace",
-          "icon": "storefront",
-          "color": Color(0xFF14B8A6),
-          "route": "/vendor-marketplace",
-        },
-        {
-  "title": "Data Migration",
-  "icon": "swap_horiz",
-  "color": const Color(0xFF9C27B0),
-  "route": AppRoutes.dataMigrationCenter,
-},
-
-      ];
+    {
+      "title": "Invoices",
+      "icon": "receipt_long",
+      "color": const Color(0xFF10B981),
+      "route": AppRoutes.invoiceManagementCenter,
+    },
+    {
+      "title": "View Live Cameras",
+      "icon": "videocam",
+      "color": Color(0xFF6B46C1),
+      "route": "/live-camera-view",
+    },
+    {
+      "title": "News & Updates",
+      "icon": "article",
+      "color": Color(0xFFEC4899),
+      "route": "/news-updates-hub",
+    },
+    {
+      "title": "Add Inventory",
+      "icon": "add_box",
+      "color": Color(0xFF10B981),
+      "route": "/inventory-management",
+    },
+    {
+      "title": "Mark Attendance",
+      "icon": "how_to_reg",
+      "color": Color(0xFF0EA5E9),
+      "route": "/staff-management",
+    },
+    {
+      "title": "Emergency Alerts",
+      "icon": "warning",
+      "color": Color(0xFFEF4444),
+      "route": "/security-events-history",
+    },
+    {
+      "title": "Process Orders",
+      "icon": "shopping_cart",
+      "color": Color(0xFF8B5CF6),
+      "route": "/order-management-hub",
+    },
+    {
+      "title": "Hiring Portal",
+      "icon": "work",
+      "color": Color(0xFFF97316),
+      "route": "/hiring-marketplace",
+    },
+    {
+      "title": "Vendor Marketplace",
+      "icon": "storefront",
+      "color": Color(0xFF14B8A6),
+      "route": "/vendor-marketplace",
+    },
+    {
+      "title": "Data Migration",
+      "icon": "swap_horiz",
+      "color": const Color(0xFF9C27B0),
+      "route": AppRoutes.dataMigrationCenter,
+    },
+  ];
 
   final SecurityAlertsService _alertsService = SecurityAlertsService();
   final SessionManager _sessionManager = SessionManager();
@@ -234,8 +231,35 @@ class _BusinessDashboardState extends State<BusinessDashboard> {
   @override
   void initState() {
     super.initState();
+    _initializeNotifications();
     _checkForSecurityAlerts();
     _loadUnreadNotificationCount();
+  }
+
+  void _initializeNotifications() {
+    _notificationItems = [
+      NotificationItem(
+        title: 'Payment Received ✓',
+        message: 'Customer paid \$2,450.00 for Invoice #INV-2024-001',
+        icon: 'payment',
+        color: const Color(0xFF10B981),
+        displayDuration: 2,
+      ),
+      NotificationItem(
+        title: 'Security Alert ⚠️',
+        message: 'Unauthorized access detected in CCTV zone 3 - Please review',
+        icon: 'security',
+        color: const Color(0xFFEF4444),
+        displayDuration: 5,
+      ),
+      NotificationItem(
+        title: 'Low Inventory Alert',
+        message: 'Espresso Beans stock below 10 units - Reorder recommended',
+        icon: 'inventory',
+        color: const Color(0xFFF59E0B),
+        displayDuration: 3,
+      ),
+    ];
   }
 
   Future<void> _loadUnreadNotificationCount() async {
@@ -245,7 +269,7 @@ class _BusinessDashboardState extends State<BusinessDashboard> {
         setState(() => _unreadNotificationCount = count);
       }
     } catch (e) {
-      // Silent fail - notification count is not critical
+      // Silent fail
     }
   }
 
@@ -258,12 +282,11 @@ class _BusinessDashboardState extends State<BusinessDashboard> {
 
   Future<void> _checkForSecurityAlerts() async {
     try {
-      // Check if alert was already shown in current session
       final hasShownInSession =
           await _sessionManager.wasAlertShownInCurrentSession();
 
       if (hasShownInSession) {
-        return; // Don't show notification if already shown in this session
+        return;
       }
 
       final count = await _alertsService.getActiveAlertsCount();
@@ -273,13 +296,12 @@ class _BusinessDashboardState extends State<BusinessDashboard> {
         Future.delayed(const Duration(milliseconds: 500), () async {
           if (mounted) {
             _showSecurityNotification();
-            // Mark alert as shown for current session
             await _sessionManager.markAlertAsShown();
           }
         });
       }
     } catch (e) {
-      // Silent fail - don't block dashboard loading
+      // Silent fail
     }
   }
 
@@ -304,7 +326,6 @@ class _BusinessDashboardState extends State<BusinessDashboard> {
     Overlay.of(context).insert(_notificationOverlay!);
   }
 
-  /// Show invoice templates bottom sheet
   void _showInvoiceTemplatesBottomSheet(BuildContext context) {
     final theme = Theme.of(context);
 
@@ -325,7 +346,6 @@ class _BusinessDashboardState extends State<BusinessDashboard> {
             return SafeArea(
               child: Column(
                 children: [
-                  // Handle bar
                   Center(
                     child: Container(
                       margin: EdgeInsets.symmetric(vertical: 1.h),
@@ -340,7 +360,6 @@ class _BusinessDashboardState extends State<BusinessDashboard> {
                     ),
                   ),
                   SizedBox(height: 1.h),
-                  // Title
                   Padding(
                     padding: EdgeInsets.symmetric(horizontal: 4.w),
                     child: Row(
@@ -364,7 +383,6 @@ class _BusinessDashboardState extends State<BusinessDashboard> {
                     ),
                   ),
                   SizedBox(height: 1.h),
-                  // Templates list
                   Expanded(
                     child: FutureBuilder<List<Map<String, dynamic>>>(
                       future: InvoicingService().getInvoiceTemplates(),
@@ -443,7 +461,6 @@ class _BusinessDashboardState extends State<BusinessDashboard> {
     );
   }
 
-  /// Build template card widget
   Widget _buildTemplateCard(
     BuildContext context,
     ThemeData theme,
@@ -481,7 +498,6 @@ class _BusinessDashboardState extends State<BusinessDashboard> {
           padding: EdgeInsets.all(3.w),
           child: Row(
             children: [
-              // Template preview image
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: SizedBox(
@@ -520,7 +536,6 @@ class _BusinessDashboardState extends State<BusinessDashboard> {
                 ),
               ),
               SizedBox(width: 3.w),
-              // Template info
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -564,7 +579,6 @@ class _BusinessDashboardState extends State<BusinessDashboard> {
                 ),
               ),
               SizedBox(width: 2.w),
-              // Arrow icon
               CustomIconWidget(
                 iconName: 'arrow_forward',
                 color: theme.colorScheme.primary,
@@ -577,7 +591,6 @@ class _BusinessDashboardState extends State<BusinessDashboard> {
     );
   }
 
-  /// Show invoice creation dialog
   void _showInvoiceCreationDialog(
     BuildContext context,
     Map<String, dynamic> template,
@@ -856,166 +869,181 @@ class _BusinessDashboardState extends State<BusinessDashboard> {
       ),
     );
   }
+
   Widget _buildPlaceholder(String title) {
-  return Center(
-    child: Text(
-      title,
-      style: const TextStyle(
-        fontSize: 20,
-        fontWeight: FontWeight.bold,
+    return Center(
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
       ),
-    ),
-  );
-}
-Widget _buildDashboard() {
-  final theme = Theme.of(context);
+    );
+  }
 
-  return RefreshIndicator(
-    onRefresh: _handleRefresh,
-    child: CustomScrollView(
-      slivers: [
+  Widget _buildDashboard() {
+    final theme = Theme.of(context);
 
-        // Header
-        SliverToBoxAdapter(
-          child: BusinessHeaderWidget(
-            businessName: businessName,
-            notificationCount: 0,
-            onNotificationTap: () {},
+    return RefreshIndicator(
+      onRefresh: _handleRefresh,
+      child: CustomScrollView(
+        slivers: [
+          // NOTIFICATION CAROUSEL - with synchronized scroll
+          if (_showNotificationCarousel && _notificationItems.isNotEmpty)
+            SliverToBoxAdapter(
+              child: NotificationCarousel(
+                notifications: _notificationItems,
+                onDismiss: () {
+                  setState(() {
+                    _showNotificationCarousel = false;
+                  });
+                },
+              ),
+            ),
+
+          // HEADER - moves with notification
+          SliverToBoxAdapter(
+            child: BusinessHeaderWidget(
+              businessName: businessName,
+              notificationCount: 0,
+              onNotificationTap: () {},
+            ),
           ),
-        ),
-        /// 🚨 CCTV ALERT CARD
-if (_activeAlertsCount > 0)
-  SliverToBoxAdapter(
-    child: Padding(
-      padding: const EdgeInsets.all(12),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.red.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.red),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.warning, color: Colors.red),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                "$_activeAlertsCount CCTV Alerts Active",
-                style: const TextStyle(
-                  color: Colors.red,
-                  fontWeight: FontWeight.bold,
+
+          if (_activeAlertsCount > 0)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.red),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.warning, color: Colors.red),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          "$_activeAlertsCount CCTV Alerts Active",
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pushNamed(
+                            context,
+                            AppRoutes.securityAlertsDashboard,
+                          );
+                        },
+                        child: const Text("View"),
+                      )
+                    ],
+                  ),
                 ),
               ),
             ),
-            TextButton(
-              onPressed: () {
-                Navigator.pushNamed(
-                  context,
-                  AppRoutes.securityAlertsDashboard,
+
+          SliverToBoxAdapter(
+            child: ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: metricsData.length,
+              itemBuilder: (context, index) {
+                final metric = metricsData[index];
+                return MetricsCardWidget(
+                  title: metric["title"],
+                  value: metric["value"],
+                  icon: metric["icon"],
+                  color: metric["color"],
+                  trend: metric["trend"],
+                  onTap: () {
+                    Navigator.pushNamed(context, metric["route"]);
+                  },
                 );
               },
-              child: const Text("View"),
-            )
-          ],
-        ),
+            ),
+          ),
+
+          SliverToBoxAdapter(
+            child: ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: _quickActions.length,
+              itemBuilder: (context, index) {
+                final action = _quickActions[index];
+                return QuickActionCardWidget(
+                  title: action["title"],
+                  icon: action["icon"],
+                  color: action["color"],
+                  onTap: () {
+                    Navigator.pushNamed(context, action["route"]);
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
-    ),
-  ),
+    );
+  }
 
-        // Metrics
-        SliverToBoxAdapter(
-          child: ListView.builder(
-            shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
-            itemCount: metricsData.length,
-            itemBuilder: (context, index) {
-              final metric = metricsData[index];
-              return MetricsCardWidget(
-                title: metric["title"],
-                value: metric["value"],
-                icon: metric["icon"],
-                color: metric["color"],
-                trend: metric["trend"],
-                onTap: () {
-                  Navigator.pushNamed(context, metric["route"]);
-                },
-              );
-            },
-          ),
+  Widget _buildSecurity() {
+    return Center(
+      child: Text("Security Data Coming Here"),
+    );
+  }
+
+  Widget _buildInventory() {
+    return Center(
+      child: Text("Inventory Data Coming Here"),
+    );
+  }
+
+  Widget _buildStaff() {
+    return Center(
+      child: Text("Staff Data Coming Here"),
+    );
+  }
+
+  Widget _buildMore() {
+    return ListView(
+      children: [
+        ListTile(
+          leading: Icon(Icons.person),
+          title: Text("Profile"),
+          onTap: () {},
         ),
-
-        // Quick Actions
-        SliverToBoxAdapter(
-          child: ListView.builder(
-            shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
-            itemCount: _quickActions.length,
-            itemBuilder: (context, index) {
-              final action = _quickActions[index];
-              return QuickActionCardWidget(
-                title: action["title"],
-                icon: action["icon"],
-                color: action["color"],
-                onTap: () {
-                  Navigator.pushNamed(context, action["route"]);
-                },
-              );
-            },
-          ),
+        ListTile(
+          leading: Icon(Icons.settings),
+          title: Text("Settings"),
+          onTap: () {},
+        ),
+        ListTile(
+          leading: Icon(Icons.notifications),
+          title: Text("Notifications"),
+          onTap: () {},
+        ),
+        ListTile(
+          leading: Icon(Icons.help),
+          title: Text("Help"),
+          onTap: () {},
+        ),
+        ListTile(
+          leading: Icon(Icons.logout, color: Colors.red),
+          title: Text("Logout"),
+          onTap: () {},
         ),
       ],
-    ),
-  );
-}
-Widget _buildSecurity() {
-  return Center(
-    child: Text("Security Data Coming Here"),
-  );
-}
+    );
+  }
 
-Widget _buildInventory() {
-  return Center(
-    child: Text("Inventory Data Coming Here"),
-  );
-}
-
-Widget _buildStaff() {
-  return Center(
-    child: Text("Staff Data Coming Here"),
-  );
-}
-Widget _buildMore() {
-  return ListView(
-    children: [
-      ListTile(
-        leading: Icon(Icons.person),
-        title: Text("Profile"),
-        onTap: () {},
-      ),
-      ListTile(
-        leading: Icon(Icons.settings),
-        title: Text("Settings"),
-        onTap: () {},
-      ),
-      ListTile(
-        leading: Icon(Icons.notifications),
-        title: Text("Notifications"),
-        onTap: () {},
-      ),
-      ListTile(
-        leading: Icon(Icons.help),
-        title: Text("Help"),
-        onTap: () {},
-      ),
-      ListTile(
-        leading: Icon(Icons.logout, color: Colors.red),
-        title: Text("Logout"),
-        onTap: () {},
-      ),
-    ],
-  );
-}
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -1071,15 +1099,13 @@ Widget _buildMore() {
           ),
         ],
       ),
-body: _getScreen(),
-     floatingActionButton: FloatingActionButton.extended(
-  onPressed: _showCreateInvoiceDialog,
-  backgroundColor: const Color(0xFF10B981),
-  icon: const Icon(Icons.receipt_long),
-  label: const Text('Bill'),
-),
-
-
+      body: _getScreen(),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _showCreateInvoiceDialog,
+        backgroundColor: const Color(0xFF10B981),
+        icon: const Icon(Icons.receipt_long),
+        label: const Text('Bill'),
+      ),
       bottomNavigationBar: CustomBottomBar(
         currentIndex: _currentBottomNavIndex,
         onTap: (index) {
@@ -1092,13 +1118,11 @@ body: _getScreen(),
     );
   }
 
-  /// Handle pull-to-refresh
   Future<void> _handleRefresh() async {
     setState(() {
       _isRefreshing = true;
     });
 
-    // Simulate data refresh
     await Future.delayed(const Duration(seconds: 1));
 
     setState(() {
@@ -1116,7 +1140,6 @@ body: _getScreen(),
     }
   }
 
-  /// Show quick actions bottom sheet for metric cards
   void _showQuickActionsBottomSheet(BuildContext context, String metricTitle) {
     final theme = Theme.of(context);
 
@@ -1197,7 +1220,6 @@ body: _getScreen(),
     );
   }
 
-  /// Show quick add bottom sheet
   void _showQuickAddBottomSheet(BuildContext context) {
     final theme = Theme.of(context);
 
