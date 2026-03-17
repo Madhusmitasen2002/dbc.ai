@@ -11,7 +11,7 @@ void main() async {
   // ✅ REQUIRED: Supabase MUST be initialized
   await Supabase.initialize(
     url: 'https://dummy.supabase.co', // ← TEMP PLACEHOLDER
-    anonKey: 'dummy-key',             // ← TEMP PLACEHOLDER
+    anonKey: 'dummy-key', // ← TEMP PLACEHOLDER
   );
 
   await SystemChrome.setPreferredOrientations([
@@ -28,11 +28,11 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Sizer(
       builder: (context, orientation, deviceType) {
-       return MaterialApp(
-  debugShowCheckedModeBanner: false,
-  title: 'dbc_all_in_one',
-  home: const SplashScreen(),
-);
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'dbc_all_in_one',
+          home: const SplashScreen(),
+        );
       },
     );
   }
