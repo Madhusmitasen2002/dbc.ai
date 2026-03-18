@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
-// ── Model (unchanged – same fields your dashboard already uses) ──────────────
+// ── Model (unchanged) ─────────────────────────────────────────────────────────
 class NotificationItem {
   final String title;
   final String message;
   final String icon;
   final Color color;
-  final int displayDuration; // seconds
+  final int displayDuration; // kept for compatibility, not used internally
 
   const NotificationItem({
     required this.title,
@@ -34,77 +34,77 @@ class NotificationCarousel extends StatefulWidget {
 }
 
 class _NotificationCarouselState extends State<NotificationCarousel>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   int _currentIndex = 0;
-  Timer? _cycleTimer;
-  late AnimationController _animController;
-  late Animation<Offset> _slideIn;
-  late Animation<Offset> _slideOut;
-  bool _isAnimatingOut = false;
+
+  // Slides the card in from the LEFT → RIGHT
+  late AnimationController _slideController;
+  late Animation<Offset> _slideAnimation;
+
+  // Fills the progress bar over 5 seconds
+  late AnimationController _progressController;
+
+  Timer? _holdTimer; // waits 10s before progress bar starts
+
+  static const int _holdSeconds = 10;
+  static const int _progressSeconds = 5;
 
   @override
   void initState() {
     super.initState();
 
-    _animController = AnimationController(
+    _slideController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 380),
+      duration: const Duration(milliseconds: 480),
     );
 
-    _slideIn = Tween<Offset>(
-      begin: const Offset(1.0, 0.0),
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(-1.0, 0.0), // enters from left
       end: Offset.zero,
     ).animate(CurvedAnimation(
-      parent: _animController,
+      parent: _slideController,
       curve: Curves.easeOutCubic,
     ));
 
-    _slideOut = Tween<Offset>(
-      begin: Offset.zero,
-      end: const Offset(-1.0, 0.0),
-    ).animate(CurvedAnimation(
-      parent: _animController,
-      curve: Curves.easeInCubic,
-    ));
+    _progressController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: _progressSeconds),
+    )..addStatusListener((status) {
+        if (status == AnimationStatus.completed) {
+          _advanceToNext();
+        }
+      });
 
-    // Slide in the first card
-    _animController.forward();
-    _scheduleNext();
+    _startCycle();
   }
 
-  void _scheduleNext() {
-    if (widget.notifications.length <= 1) return;
-
-    final currentItem = widget.notifications[_currentIndex];
-    _cycleTimer?.cancel();
-    _cycleTimer = Timer(
-      Duration(seconds: currentItem.displayDuration + 1),
-      _advanceToNext,
-    );
-  }
-
-  Future<void> _advanceToNext() async {
+  /// Slide in → hold 10s → progress bar 5s → advance → repeat
+  void _startCycle() {
     if (!mounted) return;
-    setState(() => _isAnimatingOut = true);
 
-    // Reverse = slide current card out to left
-    await _animController.reverse();
+    _slideController.reset();
+    _progressController.reset();
+    _slideController.forward();
 
+    _holdTimer?.cancel();
+    _holdTimer = Timer(const Duration(seconds: _holdSeconds), () {
+      if (mounted) _progressController.forward();
+    });
+  }
+
+  void _advanceToNext() {
     if (!mounted) return;
     setState(() {
       _currentIndex = (_currentIndex + 1) % widget.notifications.length;
-      _isAnimatingOut = false;
     });
-
-    // Slide new card in from right
-    _animController.forward();
-    _scheduleNext();
+    _startCycle();
   }
 
   @override
   void dispose() {
-    _cycleTimer?.cancel();
-    _animController.dispose();
+    _holdTimer?.cancel();
+    _slideController.dispose();
+    _progressController.dispose();
     super.dispose();
   }
 
@@ -126,136 +126,142 @@ class _NotificationCarouselState extends State<NotificationCarousel>
 
     return ClipRect(
       child: SlideTransition(
-        position: _isAnimatingOut ? _slideOut : _slideIn,
-        child: _NotificationCard(
-          item: item,
-          resolveIcon: _resolveIcon,
-          total: widget.notifications.length,
-          currentIndex: _currentIndex,
-          onDismiss: widget.onDismiss,
-        ),
-      ),
-    );
-  }
-}
-
-// ── Single card UI (Image 1 style) ────────────────────────────────────────────
-class _NotificationCard extends StatelessWidget {
-  final NotificationItem item;
-  final IconData Function(String) resolveIcon;
-  final int total;
-  final int currentIndex;
-  final VoidCallback onDismiss;
-
-  const _NotificationCard({
-    required this.item,
-    required this.resolveIcon,
-    required this.total,
-    required this.currentIndex,
-    required this.onDismiss,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.07),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
+        position: _slideAnimation,
+        child: Container(
+          margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.07),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // ── Colored icon badge ──
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: item.color.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                resolveIcon(item.icon),
-                color: item.color,
-                size: 22,
-              ),
-            ),
-            const SizedBox(width: 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // ── Main row: icon + text + dismiss ──
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 12, 10, 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Colored icon badge
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: item.color.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        _resolveIcon(item.icon),
+                        color: item.color,
+                        size: 22,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
 
-            // ── Title + message ──
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    item.title,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: Color(0xFF1A1A1A),
-                      height: 1.2,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    item.message,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF6B6B6B),
-                      height: 1.3,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  // ── Dot indicators (if multiple notifications) ──
-                  if (total > 1) ...[
-                    const SizedBox(height: 8),
-                    Row(
-                      children: List.generate(total, (i) {
-                        return AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          margin: const EdgeInsets.only(right: 4),
-                          width: i == currentIndex ? 16 : 6,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: i == currentIndex
-                                ? item.color
-                                : item.color.withOpacity(0.25),
-                            borderRadius: BorderRadius.circular(2),
+                    // Title + subtitle
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            item.title,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1A1A1A),
+                              height: 1.2,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        );
-                      }),
+                          const SizedBox(height: 3),
+                          Text(
+                            item.message,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Color(0xFF6B6B6B),
+                              height: 1.35,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // × dismiss button
+                    GestureDetector(
+                      onTap: widget.onDismiss,
+                      child: const Padding(
+                        padding: EdgeInsets.all(6),
+                        child: Icon(
+                          Icons.close,
+                          size: 18,
+                          color: Color(0xFFBDBDBD),
+                        ),
+                      ),
                     ),
                   ],
-                ],
-              ),
-            ),
-
-            // ── Dismiss ──
-            GestureDetector(
-              onTap: onDismiss,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                child: Icon(
-                  Icons.close,
-                  size: 18,
-                  color: const Color(0xFFBDBDBD),
                 ),
               ),
-            ),
-          ],
+
+              // ── Bottom row: progress bar + dot indicators ──
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Animated progress bar
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: AnimatedBuilder(
+                          animation: _progressController,
+                          builder: (_, __) => LinearProgressIndicator(
+                            value: _progressController.value,
+                            minHeight: 3,
+                            backgroundColor: item.color.withOpacity(0.15),
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(item.color),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    // Dot indicators (only if multiple notifications)
+                    if (widget.notifications.length > 1) ...[
+                      const SizedBox(width: 10),
+                      Row(
+                        children: List.generate(
+                          widget.notifications.length,
+                          (i) => AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            margin: const EdgeInsets.only(left: 4),
+                            width: i == _currentIndex ? 16 : 6,
+                            height: 4,
+                            decoration: BoxDecoration(
+                              color: i == _currentIndex
+                                  ? item.color
+                                  : item.color.withOpacity(0.25),
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
