@@ -1,5 +1,11 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:audioplayers/audioplayers.dart';
+
+// Web-only imports
+import 'notification_carousel_web.dart'
+    if (dart.library.io) 'notification_carousel_stub.dart';
 
 // ── Model (unchanged) ─────────────────────────────────────────────────────────
 class NotificationItem {
@@ -36,19 +42,20 @@ class NotificationCarousel extends StatefulWidget {
 class _NotificationCarouselState extends State<NotificationCarousel>
     with TickerProviderStateMixin {
   int _currentIndex = 0;
-  bool _isVisible = true; // controls whether card is shown during interval gap
+  bool _isVisible = true;
 
   late AnimationController _slideController;
   late Animation<Offset> _slideAnimation;
-
   late AnimationController _progressController;
 
   Timer? _holdTimer;
-  Timer? _intervalTimer; // ← NEW: 5s gap between notifications
+  Timer? _intervalTimer;
+
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
   static const int _holdSeconds = 10;
   static const int _progressSeconds = 5;
-  static const int _intervalSeconds = 5; // ← NEW
+  static const int _intervalSeconds = 5;
 
   @override
   void initState() {
@@ -72,14 +79,30 @@ class _NotificationCarouselState extends State<NotificationCarousel>
       duration: const Duration(seconds: _progressSeconds),
     )..addStatusListener((status) {
         if (status == AnimationStatus.completed) {
-          _slideOut(); // ← slide OUT first, then wait 5s, then show next
+          _slideOut();
         }
       });
+
+    // Unlock web audio context BEFORE first cycle
+    if (kIsWeb) {
+      unlockWebAudio(); // defined in platform files below
+    }
 
     _startCycle();
   }
 
-  /// Step 1: Slide in → hold 10s → progress bar 5s
+  Future<void> _playSound() async {
+    try {
+      await _audioPlayer.stop();
+      await _audioPlayer.play(
+        AssetSource('sounds/notification.mp3'),
+        volume: 0.8,
+      );
+    } catch (_) {
+      // Silent fail
+    }
+  }
+
   void _startCycle() {
     if (!mounted) return;
 
@@ -88,23 +111,23 @@ class _NotificationCarouselState extends State<NotificationCarousel>
     _progressController.reset();
     _slideController.forward();
 
+    _playSound();
+
     _holdTimer?.cancel();
     _holdTimer = Timer(const Duration(seconds: _holdSeconds), () {
       if (mounted) _progressController.forward();
     });
   }
 
-  /// Step 2: Slide the card back UP (out of view)
   void _slideOut() {
     if (!mounted) return;
     _slideController.reverse().then((_) {
       if (!mounted) return;
-      setState(() => _isVisible = false); // hide completely during gap
-      _startInterval();                   // wait 5s before next
+      setState(() => _isVisible = false);
+      _startInterval();
     });
   }
 
-  /// Step 3: Wait 5 seconds, then advance to next notification
   void _startInterval() {
     _intervalTimer?.cancel();
     _intervalTimer = Timer(const Duration(seconds: _intervalSeconds), () {
@@ -112,7 +135,7 @@ class _NotificationCarouselState extends State<NotificationCarousel>
       setState(() {
         _currentIndex = (_currentIndex + 1) % widget.notifications.length;
       });
-      _startCycle(); // Step 1 again for next notification
+      _startCycle();
     });
   }
 
@@ -122,6 +145,7 @@ class _NotificationCarouselState extends State<NotificationCarousel>
     _intervalTimer?.cancel();
     _slideController.dispose();
     _progressController.dispose();
+    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -139,7 +163,6 @@ class _NotificationCarouselState extends State<NotificationCarousel>
 
   @override
   Widget build(BuildContext context) {
-    // During the 5s gap, render nothing
     if (!_isVisible) return const SizedBox.shrink();
 
     final item = widget.notifications[_currentIndex];
