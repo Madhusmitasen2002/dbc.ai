@@ -9,11 +9,13 @@ class DashboardTabWidget extends StatelessWidget {
     required this.activeAlertsCount,
     required this.onViewAll,
     required this.onRefresh,
+    this.onPaymentsTap,
   });
 
   final String businessName;
   final int activeAlertsCount;
   final VoidCallback onViewAll;
+  final VoidCallback? onPaymentsTap; 
   final Future<void> Function() onRefresh;
 
   // ── Data ──
