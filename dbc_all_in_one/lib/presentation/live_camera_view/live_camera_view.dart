@@ -1,5 +1,11 @@
+// live_camera_view.dart
+// Main camera monitoring page.
+// Imports SecurityEvent model and SecurityHistoryPage widget as separate files.
+
 import 'dart:async';
 
+import 'package:dbc_all_in_one/presentation/live_camera_view/widgets/security_event_model.dart';
+import 'package:dbc_all_in_one/presentation/live_camera_view/widgets/security_history_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:sizer/sizer.dart';
@@ -32,6 +38,87 @@ class _LiveCameraViewState extends State<LiveCameraView>
   Animation<double>? _pulseAnim;
   Timer? _clockTicker;
   DateTime _now = DateTime.now();
+
+  // ── Security history ──────────────────────────────────────────────────────
+  final List<SecurityEvent> _securityEvents = [
+    SecurityEvent(
+      id: '1',
+      type: SecurityEventType.person,
+      cameraName: 'Front Entrance',
+      zone: 'Zone A',
+      timestamp: DateTime.now().subtract(const Duration(minutes: 4)),
+      description: 'Person detected near entrance door',
+      confidence: 0.95,
+    ),
+    SecurityEvent(
+      id: '2',
+      type: SecurityEventType.motion,
+      cameraName: 'Kitchen Area',
+      zone: 'Zone B',
+      timestamp: DateTime.now().subtract(const Duration(minutes: 17)),
+      description: 'Motion triggered on left aisle',
+      confidence: 0.82,
+    ),
+    SecurityEvent(
+      id: '3',
+      type: SecurityEventType.vehicle,
+      cameraName: 'Front Entrance',
+      zone: 'Zone A',
+      timestamp: DateTime.now().subtract(const Duration(minutes: 38)),
+      description: 'Vehicle parked in restricted zone',
+      confidence: 0.87,
+      isResolved: true,
+    ),
+    SecurityEvent(
+      id: '4',
+      type: SecurityEventType.snapshot,
+      cameraName: 'Counter Zone',
+      zone: 'Zone D',
+      timestamp: DateTime.now().subtract(const Duration(hours: 1, minutes: 10)),
+      description: 'Manual snapshot captured by operator',
+    ),
+    SecurityEvent(
+      id: '5',
+      type: SecurityEventType.alert,
+      cameraName: 'Store Room',
+      zone: 'Zone C',
+      timestamp: DateTime.now().subtract(const Duration(hours: 2, minutes: 5)),
+      description: 'Emergency alert triggered',
+      isResolved: true,
+    ),
+    SecurityEvent(
+      id: '6',
+      type: SecurityEventType.person,
+      cameraName: 'Kitchen Area',
+      zone: 'Zone B',
+      timestamp: DateTime.now().subtract(const Duration(hours: 3)),
+      description: 'Unknown person in restricted area',
+      confidence: 0.91,
+      isResolved: true,
+    ),
+    SecurityEvent(
+      id: '7',
+      type: SecurityEventType.motion,
+      cameraName: 'Store Room',
+      zone: 'Zone C',
+      timestamp: DateTime(DateTime.now().year, DateTime.now().month,
+          DateTime.now().day - 1, 22, 15),
+      description: 'After-hours motion detected',
+      confidence: 0.78,
+      isResolved: true,
+    ),
+    SecurityEvent(
+      id: '8',
+      type: SecurityEventType.vehicle,
+      cameraName: 'Front Entrance',
+      zone: 'Zone A',
+      timestamp: DateTime(DateTime.now().year, DateTime.now().month,
+          DateTime.now().day - 1, 18, 30),
+      description: 'Delivery vehicle detected at entrance',
+      confidence: 0.90,
+      isResolved: true,
+    ),
+  ];
 
   // ── Theme ─────────────────────────────────────────────────────────────────
   static const _purple = Color(0xFF6B46C1);
@@ -118,7 +205,16 @@ class _LiveCameraViewState extends State<LiveCameraView>
 
   // ── Actions ───────────────────────────────────────────────────────────────
   void _captureSnapshot() {
-    _showToast('Snapshot captured (Demo)');
+    final event = SecurityEvent(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      type: SecurityEventType.snapshot,
+      cameraName: _camName(_selectedCameraIndex),
+      zone: _camZone(_selectedCameraIndex),
+      timestamp: DateTime.now(),
+      description: 'Manual snapshot captured by operator',
+    );
+    setState(() => _securityEvents.insert(0, event));
+    _showToast('Snapshot captured & saved to history');
     _triggerAlert('Motion detected · ${_camName(_selectedCameraIndex)}');
   }
 
@@ -141,6 +237,81 @@ class _LiveCameraViewState extends State<LiveCameraView>
         backgroundColor: Colors.black87,
         textColor: Colors.white,
       );
+
+  /// Push the SecurityHistoryPage as a full separate route.
+  void _openHistoryPage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => SecurityHistoryPage(
+          events: _securityEvents,
+          asPage: true,
+          onClearAll: () {
+            Navigator.pop(context);
+            _confirmClearHistory();
+          },
+          onEventTap: (e) {
+            Navigator.pop(context);
+            _showToast('${e.typeLabel} · ${e.cameraName}');
+          },
+        ),
+      ),
+    );
+  }
+
+  void _confirmClearHistory() {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            const Icon(Icons.delete_sweep_rounded,
+                color: Color(0xFFEF4444), size: 32),
+            const SizedBox(height: 12),
+            const Text('Clear History',
+                style: TextStyle(
+                    fontSize: 16, fontWeight: FontWeight.w700, color: _dark)),
+            const SizedBox(height: 8),
+            Text('All security events will be permanently deleted.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13, color: Colors.grey.shade600)),
+            const SizedBox(height: 22),
+            Row(children: [
+              Expanded(
+                  child: OutlinedButton(
+                onPressed: () => Navigator.pop(context),
+                style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 11),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    side: BorderSide(color: Colors.grey.shade300)),
+                child: const Text('Cancel', style: TextStyle(color: _dark)),
+              )),
+              const SizedBox(width: 10),
+              Expanded(
+                  child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  setState(() => _securityEvents.clear());
+                },
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFEF4444),
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 11),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                    elevation: 0),
+                child: const Text('Clear All',
+                    style: TextStyle(fontWeight: FontWeight.w700)),
+              )),
+            ]),
+          ]),
+        ),
+      ),
+    );
+  }
 
   void _handleEmergencyAlert() {
     showDialog(
@@ -185,6 +356,15 @@ class _LiveCameraViewState extends State<LiveCameraView>
                   child: ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);
+                  final alert = SecurityEvent(
+                    id: DateTime.now().millisecondsSinceEpoch.toString(),
+                    type: SecurityEventType.alert,
+                    cameraName: _camName(_selectedCameraIndex),
+                    zone: _camZone(_selectedCameraIndex),
+                    timestamp: DateTime.now(),
+                    description: 'Emergency alert triggered',
+                  );
+                  setState(() => _securityEvents.insert(0, alert));
                   _showToast('Emergency alert sent');
                 },
                 style: ElevatedButton.styleFrom(
@@ -214,6 +394,7 @@ class _LiveCameraViewState extends State<LiveCameraView>
         Expanded(child: _buildFeedCard()),
         _buildCameraStrip(),
         _buildBottomPanel(),
+        _buildHistoryPreviewStrip(),
       ]),
     );
   }
@@ -268,7 +449,6 @@ class _LiveCameraViewState extends State<LiveCameraView>
             _topBtn(Icons.tune_rounded,
                 () => Navigator.pushNamed(context, '/business-dashboard')),
             const SizedBox(width: 8),
-            // Compact SOS
             GestureDetector(
               onTap: _handleEmergencyAlert,
               child: Container(
@@ -333,10 +513,7 @@ class _LiveCameraViewState extends State<LiveCameraView>
       child: GestureDetector(
         onTap: () => setState(() => _showControls = !_showControls),
         child: Stack(fit: StackFit.expand, children: [
-          // Feed
           _isSplitScreenMode ? _buildSplitScreen() : _buildDemoImageFeed(),
-
-          // Overlays
           if (_showControls) ...[
             Positioned(top: 12, left: 12, child: _buildLiveBadge()),
             Positioned(top: 12, right: 12, child: _buildDemoBadge()),
@@ -344,11 +521,9 @@ class _LiveCameraViewState extends State<LiveCameraView>
             if (_currentZoom > 1.01)
               Positioned(bottom: 12, left: 12, child: _buildZoomBadge()),
           ],
-
           if (_showAlert)
             Positioned(
                 top: 12, left: 12, right: 12, child: _buildAlertBanner()),
-
           if (!_isSplitScreenMode) ..._mockDetections.map(_buildDetection),
         ]),
       ),
@@ -422,7 +597,7 @@ class _LiveCameraViewState extends State<LiveCameraView>
                             colors: [
                       Colors.black.withOpacity(0.35),
                       Colors.transparent,
-                      Colors.black.withOpacity(0.5)
+                      Colors.black.withOpacity(0.5),
                     ],
                             stops: const [
                       0.0,
@@ -475,7 +650,7 @@ class _LiveCameraViewState extends State<LiveCameraView>
         ]),
       );
 
-  // ── Overlays ──────────────────────────────────────────────────────────────
+  // ── Feed overlays ─────────────────────────────────────────────────────────
   Widget _buildLiveBadge() {
     final anim = _pulseAnim;
     return Container(
@@ -679,18 +854,12 @@ class _LiveCameraViewState extends State<LiveCameraView>
   // ── BOTTOM PANEL ──────────────────────────────────────────────────────────
   Widget _buildBottomPanel() => Container(
         color: _surface,
-        padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 12,
-            bottom: MediaQuery.of(context).padding.bottom + 14),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Container(
               height: 1,
               color: const Color(0xFFEEEEEE),
               margin: const EdgeInsets.only(bottom: 12)),
-
-          // Motion sensitivity
           Row(children: [
             const Icon(Icons.sensors_rounded,
                 color: Color(0xFFBBBBBB), size: 15),
@@ -706,7 +875,7 @@ class _LiveCameraViewState extends State<LiveCameraView>
               child: Text('${(_motionSensitivity * 100).toInt()}%',
                   style: const TextStyle(
                       color: _purple,
-                      fontSize: 11, // ← fixed (was 20)
+                      fontSize: 11,
                       fontWeight: FontWeight.w700)),
             ),
           ]),
@@ -726,9 +895,7 @@ class _LiveCameraViewState extends State<LiveCameraView>
                 divisions: 20,
                 onChanged: (v) => setState(() => _motionSensitivity = v)),
           ),
-
           const SizedBox(height: 6),
-
           Row(children: [
             _actionBtn(
                 icon: Icons.camera_alt_outlined,
@@ -778,9 +945,127 @@ class _LiveCameraViewState extends State<LiveCameraView>
             Text(label,
                 style: TextStyle(
                     color: active ? _purple : const Color(0xFF9E9E9E),
-                    fontSize: 11, // ← fixed (was 20)
+                    fontSize: 11,
                     fontWeight: FontWeight.w500)),
           ]),
         ),
       ));
+
+  // ── HISTORY PREVIEW STRIP ─────────────────────────────────────────────────
+  Widget _buildHistoryPreviewStrip() {
+    final recent = _securityEvents.take(3).toList();
+    return Container(
+      color: _surface,
+      padding: EdgeInsets.only(
+          left: 12,
+          right: 12,
+          top: 0,
+          bottom: MediaQuery.of(context).padding.bottom + 12),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Container(
+            height: 1,
+            color: const Color(0xFFEEEEEE),
+            margin: const EdgeInsets.only(bottom: 10)),
+        Row(children: [
+          const Icon(Icons.history_rounded, color: Color(0xFFBBBBBB), size: 15),
+          const SizedBox(width: 6),
+          const Text('Recent Activity',
+              style: TextStyle(color: Color(0xFF9E9E9E), fontSize: 12)),
+          const Spacer(),
+          GestureDetector(
+            onTap: _openHistoryPage,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                  color: _purple.withOpacity(0.08),
+                  borderRadius: BorderRadius.circular(7),
+                  border: Border.all(color: _purple.withOpacity(0.2))),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                Text('View All (${_securityEvents.length})',
+                    style: const TextStyle(
+                        color: _purple,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600)),
+                const SizedBox(width: 3),
+                const Icon(Icons.chevron_right_rounded,
+                    color: _purple, size: 14),
+              ]),
+            ),
+          ),
+        ]),
+        const SizedBox(height: 8),
+        if (recent.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 10),
+            child: Text('No recent events',
+                style: TextStyle(color: Color(0xFFCCCCCC), fontSize: 12)),
+          )
+        else
+          ...recent.map((e) => _PreviewEventRow(event: e)),
+      ]),
+    );
+  }
+}
+
+// ── Compact preview row (used only in LiveCameraView) ─────────────────────
+class _PreviewEventRow extends StatelessWidget {
+  final SecurityEvent event;
+  const _PreviewEventRow({required this.event});
+
+  String _relativeTime() {
+    final diff = DateTime.now().difference(event.timestamp);
+    if (diff.inMinutes < 1) return 'Just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    return '${diff.inDays}d ago';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+          color: const Color(0xFFF9F9FC),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: const Color(0xFFF0EFF8))),
+      child: Row(children: [
+        Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+              color: event.color.withOpacity(0.10),
+              borderRadius: BorderRadius.circular(7)),
+          child: Icon(event.icon, color: event.color, size: 13),
+        ),
+        const SizedBox(width: 9),
+        Expanded(
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(event.description,
+                style: const TextStyle(
+                    color: Color(0xFF444444),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis),
+            const SizedBox(height: 1),
+            Text(event.cameraName,
+                style: const TextStyle(color: Color(0xFFAAAAAA), fontSize: 10)),
+          ]),
+        ),
+        const SizedBox(width: 8),
+        Text(_relativeTime(),
+            style: const TextStyle(
+                color: Color(0xFFBBBBBB),
+                fontSize: 10,
+                fontWeight: FontWeight.w500)),
+        if (event.isResolved) ...[
+          const SizedBox(width: 5),
+          const Icon(Icons.check_circle_outline_rounded,
+              color: Color(0xFF10B981), size: 12),
+        ],
+      ]),
+    );
+  }
 }

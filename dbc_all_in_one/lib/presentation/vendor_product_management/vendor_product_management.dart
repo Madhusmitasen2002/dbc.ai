@@ -8,6 +8,7 @@ import '../../widgets/custom_icon_widget.dart';
 import '../../widgets/dbc_back_button.dart';
 import './widgets/add_listing_dialog_widget.dart';
 import './widgets/vendor_listing_card_widget.dart';
+import '../../services/marketplace_service.dart';
 
 class VendorProductManagement extends StatefulWidget {
   const VendorProductManagement({super.key});
