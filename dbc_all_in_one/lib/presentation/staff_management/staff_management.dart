@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
+import 'widgets/staff_widget.dart';
+import 'widgets/attendance_widget.dart';
+import 'widgets/hiring_widget.dart';
+import 'widgets/payroll_widget.dart';
 
 // ─────────────────────────────────────────────
 //  MODELS
@@ -55,6 +59,17 @@ class AttendanceRecord {
       required this.checkIn,
       required this.arrivalNote,
       required this.locationStatus,
+      required this.avatarColor});
+}
+
+class PayrollItem {
+  String name, role, amount, status;
+  Color avatarColor;
+  PayrollItem(
+      {required this.name,
+      required this.role,
+      required this.amount,
+      required this.status,
       required this.avatarColor});
 }
 
@@ -228,6 +243,39 @@ class _StaffManagementState extends State<StaffManagement>
         company: "Nik Designs",
         status: "Pending",
         avatarColor: const Color(0xff7B5EA7)),
+  ];
+
+  late final List<PayrollItem> _payroll = [
+    PayrollItem(
+        name: _staff[0].name,
+        role: _staff[0].role,
+        amount: "₹25,000",
+        status: "Paid",
+        avatarColor: _staff[0].avatarColor),
+    PayrollItem(
+        name: _staff[1].name,
+        role: _staff[1].role,
+        amount: "₹30,000",
+        status: "Pending",
+        avatarColor: _staff[1].avatarColor),
+    PayrollItem(
+        name: _staff[2].name,
+        role: _staff[2].role,
+        amount: "₹28,000",
+        status: "Paid",
+        avatarColor: _staff[2].avatarColor),
+    PayrollItem(
+        name: _staff[3].name,
+        role: _staff[3].role,
+        amount: "₹22,000",
+        status: "Pending",
+        avatarColor: _staff[3].avatarColor),
+    PayrollItem(
+        name: _staff[4].name,
+        role: _staff[4].role,
+        amount: "₹26,000",
+        status: "Paid",
+        avatarColor: _staff[4].avatarColor),
   ];
 
   @override
@@ -442,6 +490,84 @@ class _StaffManagementState extends State<StaffManagement>
             _snack("Position created successfully");
           },
           confirmLabel: "Create Position",
+        );
+      }),
+    );
+  }
+
+  void _showAddPayrollModal() {
+    final nameCtrl = TextEditingController();
+    final roleCtrl = TextEditingController();
+    final amountCtrl = TextEditingController();
+    String selectedStatus = "Pending";
+
+    showDialog(
+      context: context,
+      builder: (_) => StatefulBuilder(builder: (ctx, setS) {
+        return _buildModal(
+          title: "Add Payroll Entry",
+          icon: Icons.payment,
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _inputField("Employee Name", nameCtrl, hint: "e.g. John Doe"),
+              const SizedBox(height: 14),
+              _inputField("Role", roleCtrl, hint: "e.g. Developer"),
+              const SizedBox(height: 14),
+              _inputField("Amount", amountCtrl, hint: "e.g. ₹25,000"),
+              const SizedBox(height: 14),
+              const Text("Status",
+                  style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: _textDark)),
+              const SizedBox(height: 8),
+              Row(
+                children: ["Paid", "Pending"].map((s) {
+                  final sel = selectedStatus == s;
+                  return GestureDetector(
+                    onTap: () => setS(() => selectedStatus = s),
+                    child: Container(
+                      margin: const EdgeInsets.only(right: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 18, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: sel ? _purple : _white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: sel ? _purple : _border),
+                      ),
+                      child: Text(s,
+                          style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: sel ? _white : _textMid)),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+          onConfirm: () {
+            if (nameCtrl.text.trim().isEmpty ||
+                roleCtrl.text.trim().isEmpty ||
+                amountCtrl.text.trim().isEmpty) {
+              _snack("Please fill in all required fields");
+              return;
+            }
+            setState(() {
+              _payroll.add(PayrollItem(
+                name: nameCtrl.text.trim(),
+                role: roleCtrl.text.trim(),
+                amount: amountCtrl.text.trim(),
+                status: selectedStatus,
+                avatarColor: _purple,
+              ));
+            });
+            Navigator.pop(context);
+            _snack("Payroll entry added successfully");
+          },
+          confirmLabel: "Add Entry",
         );
       }),
     );
@@ -856,10 +982,35 @@ class _StaffManagementState extends State<StaffManagement>
             child: TabBarView(
               controller: _mainTab,
               children: [
-                _staffTab(),
-                _attendanceTab(),
-                _hiringMainTab(),
-                _payrollTab()
+                StaffTabWidget(
+                  staff: _staff,
+                  onAddStaff: _showAddStaffModal,
+                  onStaffTap: (s) => _showStaffDetailModal(s),
+                  onHiringTap: () => _mainTab.animateTo(2),
+                  purpleBtn: _purpleBtn,
+                ),
+                AttendanceTabWidget(
+                  attendance: _attendance,
+                  snack: _snack,
+                ),
+                HiringTabWidget(
+                  jobs: _jobs,
+                  candidates: _candidates,
+                  subTabController: _hiringSubTab,
+                  onAddPosition: _showAddPositionModal,
+                  onJobTap: (j) => _showJobDetailModal(j),
+                  onCandidateTap: (c, a) => _showCandidateModal(c, a),
+                  purpleBtn: _purpleBtn,
+                  outlineBtn: _outlineBtn,
+                  onSnack: _snack,
+                ),
+                PayrollTabWidget(
+                  payroll: _payroll,
+                  subTabController: _hiringSubTab,
+                  onAddPayroll: _showAddPayrollModal,
+                  purpleBtn: _purpleBtn,
+                  onSnack: _snack,
+                ),
               ],
             ),
           ),
@@ -962,818 +1113,9 @@ class _StaffManagementState extends State<StaffManagement>
   //  STAFF TAB
   // ═══════════════════════════════════════════
 
-  Widget _staffTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(children: [
-            const Text("Staff Directory",
-                style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                    color: _textDark)),
-            const Spacer(),
-            _purpleBtn("+ Add New Staff", _showAddStaffModal),
-          ]),
-          const SizedBox(height: 4),
-          const Text("Search by name or role...",
-              style: TextStyle(fontSize: 13, color: _textMid)),
-          const SizedBox(height: 18),
-          // Stat cards
-          Row(children: [
-            _staffStatCard(
-                icon: Icons.person_outline_rounded,
-                iconColor: _purple,
-                iconBg: _purpleLight,
-                label: "Total Personnel",
-                value: "${_staff.length}",
-                sub: "↑ +4 this month",
-                subColor: _green),
-            const SizedBox(width: 14),
-            _staffStatCard(
-                icon: Icons.schedule_rounded,
-                iconColor: const Color(0xff7C3AED),
-                iconBg: const Color(0xffEDE9FE),
-                label: "Avg. Shift Duration",
-                value: "7.8h",
-                sub: "Standard baseline",
-                subColor: _textMid),
-            const SizedBox(width: 14),
-            _staffStatCard(
-                icon: Icons.calendar_today_rounded,
-                iconColor: _orange,
-                iconBg: const Color(0xffFFFBEB),
-                label: "On Duty Today",
-                value: "${_staff.where((s) => s.status == "In Office").length}",
-                sub: "12 pending shifts",
-                subColor: _textMid),
-          ]),
-          const SizedBox(height: 20),
-          // Staff grid – fixed height per card, no aspect ratio issues
-          LayoutBuilder(builder: (ctx, box) {
-            int cols = (box.maxWidth / 170).floor().clamp(3, 6);
-            const cardH = 148.0;
-            int rows = ((_staff.length + 1) / cols).ceil();
-            return SizedBox(
-              height: rows * cardH + (rows - 1) * 12,
-              child: GridView.builder(
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: cols,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                  mainAxisExtent: cardH,
-                ),
-                itemCount: _staff.length + 1,
-                itemBuilder: (_, i) => i == _staff.length
-                    ? _growTeamCard()
-                    : _staffCard(_staff[i]),
-              ),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
-  Widget _staffStatCard(
-      {required IconData icon,
-      required Color iconColor,
-      required Color iconBg,
-      required String label,
-      required String value,
-      required String sub,
-      required Color subColor}) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-            color: _white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: _border)),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                  color: iconBg, borderRadius: BorderRadius.circular(9)),
-              child: Icon(icon, color: iconColor, size: 18)),
-          const SizedBox(height: 10),
-          Text(label,
-              style: const TextStyle(
-                  fontSize: 11, color: _textMid, fontWeight: FontWeight.w500)),
-          const SizedBox(height: 3),
-          Text(value,
-              style: const TextStyle(
-                  fontSize: 26, fontWeight: FontWeight.w700, color: _textDark)),
-          const SizedBox(height: 3),
-          Text(sub, style: TextStyle(fontSize: 11, color: subColor)),
-        ]),
-      ),
-    );
-  }
-
-  Widget _staffCard(StaffMember s) {
-    Color statusColor;
-    switch (s.status) {
-      case "In Office":
-        statusColor = _green;
-        break;
-      case "Break":
-        statusColor = _orange;
-        break;
-      case "Remote":
-        statusColor = _teal;
-        break;
-      default:
-        statusColor = _textMid;
-    }
-    return GestureDetector(
-      onTap: () => _showStaffDetailModal(s),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        decoration: BoxDecoration(
-          color: _white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: _border),
-          boxShadow: [
-            BoxShadow(
-                color: Colors.black.withOpacity(0.03),
-                blurRadius: 6,
-                offset: const Offset(0, 2))
-          ],
-        ),
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Stack(clipBehavior: Clip.none, children: [
-            CircleAvatar(
-                radius: 22,
-                backgroundColor: s.avatarColor,
-                child: Text(s.name.split(' ').map((w) => w[0]).take(2).join(),
-                    style: const TextStyle(
-                        color: _white,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 12))),
-            Positioned(
-                bottom: 0,
-                right: 0,
-                child: Container(
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                        color: statusColor,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: _white, width: 2)))),
-          ]),
-          const SizedBox(height: 6),
-          Text(s.name,
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                  fontWeight: FontWeight.w700, fontSize: 12, color: _textDark)),
-          Text(s.role,
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 10, color: _textMid)),
-          const SizedBox(height: 6),
-          const Divider(height: 1, color: _border),
-          const SizedBox(height: 6),
-          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              const Text("STATUS",
-                  style: TextStyle(
-                      fontSize: 6,
-                      color: _textMid,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.4)),
-              Text(s.status,
-                  style: TextStyle(
-                      fontSize: 6,
-                      fontWeight: FontWeight.w600,
-                      color: statusColor)),
-            ]),
-            Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-              const Text("HOURS",
-                  style: TextStyle(
-                      fontSize: 8,
-                      color: _textMid,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.4)),
-              Text(s.hours,
-                  style: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: _textDark)),
-            ]),
-          ]),
-        ]),
-      ),
-    );
-  }
-
-  Widget _growTeamCard() {
-    return GestureDetector(
-      onTap: () => _mainTab.animateTo(2),
-      child: Container(
-        decoration: BoxDecoration(
-          color: _purpleLight,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: _purple.withOpacity(0.25), width: 1.5),
-        ),
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Container(
-              width: 40,
-              height: 40,
-              decoration:
-                  const BoxDecoration(color: _white, shape: BoxShape.circle),
-              child: const Icon(Icons.person_add_alt_1_rounded,
-                  color: _purple, size: 20)),
-          const SizedBox(height: 8),
-          const Text("Grow the Team",
-              style: TextStyle(
-                  fontWeight: FontWeight.w700, fontSize: 12, color: _purple)),
-          const SizedBox(height: 2),
-          const Text("Start a new hiring cycle",
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 10, color: Color(0xff7C3AED))),
-        ]),
-      ),
-    );
-  }
-
   // ═══════════════════════════════════════════
   //  ATTENDANCE TAB
   // ═══════════════════════════════════════════
-
-  Widget _attendanceTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(children: [
-            const Text("Staff Attendance",
-                style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                    color: _textDark)),
-            const Spacer(),
-            _circleBtn(Icons.chevron_left),
-            const SizedBox(width: 8),
-            Column(crossAxisAlignment: CrossAxisAlignment.end, children: const [
-              Text("SELECTED DATE",
-                  style: TextStyle(
-                      fontSize: 10, color: _textMid, letterSpacing: 0.5)),
-              Text("Oct 24, 2023",
-                  style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: _textDark)),
-            ]),
-            const SizedBox(width: 8),
-            _circleBtn(Icons.chevron_right),
-            const SizedBox(width: 6),
-            _circleBtn(Icons.calendar_month_outlined),
-          ]),
-          const SizedBox(height: 18),
-          Row(children: [
-            _attendStatCard("Present Today", "42", " / 48",
-                "● 87% attendance rate", _green),
-            const SizedBox(width: 14),
-            _attendStatCard(
-                "Absent", "04", " Today", "● 2 personal, 2 sick leave", _red),
-            const SizedBox(width: 14),
-            _attendStatCard("Late Arrivals", "02", " Pending Review",
-                "● Average delay: 12m", _orange),
-          ]),
-          const SizedBox(height: 18),
-          LayoutBuilder(builder: (ctx, box) {
-            final wide = box.maxWidth > 650;
-            if (wide) {
-              return Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(flex: 3, child: _recentActivity()),
-                    const SizedBox(width: 14),
-                    Expanded(
-                        child: Column(children: [
-                      _calendarCard(),
-                      const SizedBox(height: 14),
-                      _monthlyOverviewCard()
-                    ])),
-                  ]);
-            }
-            return Column(children: [
-              _recentActivity(),
-              const SizedBox(height: 14),
-              _calendarCard(),
-              const SizedBox(height: 14),
-              _monthlyOverviewCard()
-            ]);
-          }),
-        ],
-      ),
-    );
-  }
-
-  Widget _attendStatCard(
-      String label, String value, String suffix, String sub, Color subColor) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-            color: _white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: _border)),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(label, style: const TextStyle(fontSize: 12, color: _textMid)),
-          const SizedBox(height: 6),
-          RichText(
-              text: TextSpan(children: [
-            TextSpan(
-                text: value,
-                style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w700,
-                    color: _textDark)),
-            TextSpan(
-                text: suffix,
-                style: const TextStyle(fontSize: 13, color: _textMid)),
-          ])),
-          const SizedBox(height: 5),
-          Text(sub, style: TextStyle(fontSize: 11, color: subColor)),
-        ]),
-      ),
-    );
-  }
-
-  Widget _recentActivity() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-          color: _white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: _border)),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [
-          const Text("Recent Activity",
-              style: TextStyle(
-                  fontWeight: FontWeight.w700, fontSize: 14, color: _textDark)),
-          const Spacer(),
-          GestureDetector(
-            onTap: () => _snack("Showing full log..."),
-            child: const Text("View Full Log",
-                style: TextStyle(
-                    color: _purple, fontSize: 12, fontWeight: FontWeight.w600)),
-          ),
-        ]),
-        const SizedBox(height: 10),
-        const Padding(
-          padding: EdgeInsets.symmetric(vertical: 5),
-          child: Row(children: [
-            Expanded(
-                flex: 3,
-                child: Text("STAFF MEMBER",
-                    style: TextStyle(
-                        fontSize: 9,
-                        color: _textMid,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.5))),
-            Expanded(
-                flex: 2,
-                child: Text("CHECK-IN",
-                    style: TextStyle(
-                        fontSize: 9,
-                        color: _textMid,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.5))),
-            Expanded(
-                flex: 2,
-                child: Text("STATUS",
-                    style: TextStyle(
-                        fontSize: 9,
-                        color: _textMid,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.5))),
-            SizedBox(width: 30),
-          ]),
-        ),
-        const Divider(color: _border, height: 1),
-        ..._attendance.map(_activityRow),
-      ]),
-    );
-  }
-
-  Widget _activityRow(AttendanceRecord r) {
-    Color statusBg, statusFg;
-    switch (r.locationStatus) {
-      case "ON-SITE":
-        statusBg = const Color(0xffDCFCE7);
-        statusFg = _green;
-        break;
-      case "LATE":
-        statusBg = const Color(0xffFEF3C7);
-        statusFg = _orange;
-        break;
-      case "ABSENT":
-        statusBg = const Color(0xffFEE2E2);
-        statusFg = _red;
-        break;
-      default:
-        statusBg = const Color(0xffE0F2FE);
-        statusFg = _teal;
-    }
-    final arrivalColor = r.arrivalNote.contains("Late")
-        ? _orange
-        : (r.arrivalNote == "No Entry" ? _red : _green);
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(children: [
-        Expanded(
-            flex: 3,
-            child: Row(children: [
-              CircleAvatar(
-                  radius: 15,
-                  backgroundColor: r.avatarColor,
-                  child: Text(r.initials,
-                      style: const TextStyle(
-                          color: _white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700))),
-              const SizedBox(width: 8),
-              Expanded(
-                  child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                    Text(r.name,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 12,
-                            color: _textDark),
-                        overflow: TextOverflow.ellipsis),
-                    Text(r.role,
-                        style: const TextStyle(fontSize: 10, color: _textMid),
-                        overflow: TextOverflow.ellipsis),
-                  ])),
-            ])),
-        Expanded(
-            flex: 2,
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Text(r.checkIn,
-                  style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: _textDark)),
-              Text(r.arrivalNote,
-                  style: TextStyle(fontSize: 10, color: arrivalColor)),
-            ])),
-        Expanded(
-            flex: 2,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-              decoration: BoxDecoration(
-                  color: statusBg, borderRadius: BorderRadius.circular(6)),
-              child: Text(r.locationStatus,
-                  style: TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: statusFg)),
-            )),
-        SizedBox(
-            width: 30,
-            child: IconButton(
-              icon: const Icon(Icons.more_vert, size: 15, color: _textMid),
-              onPressed: () => _snack("Options for ${r.name}"),
-              padding: EdgeInsets.zero,
-            )),
-      ]),
-    );
-  }
-
-  Widget _calendarCard() {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-          color: _white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: _border)),
-      child: TableCalendar(
-        headerStyle: const HeaderStyle(
-          formatButtonVisible: false,
-          titleCentered: true,
-          titleTextStyle: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
-          leftChevronIcon: Icon(Icons.chevron_left, size: 18, color: _textMid),
-          rightChevronIcon:
-              Icon(Icons.chevron_right, size: 18, color: _textMid),
-          headerPadding: EdgeInsets.symmetric(vertical: 8),
-        ),
-        daysOfWeekStyle: const DaysOfWeekStyle(
-          weekdayStyle: TextStyle(
-              fontSize: 11, color: _textMid, fontWeight: FontWeight.w600),
-          weekendStyle: TextStyle(
-              fontSize: 11, color: _textMid, fontWeight: FontWeight.w600),
-        ),
-        calendarStyle: CalendarStyle(
-          cellMargin: const EdgeInsets.all(2),
-          defaultTextStyle: const TextStyle(fontSize: 12, color: _textDark),
-          weekendTextStyle: const TextStyle(fontSize: 12, color: _textMid),
-          outsideTextStyle: TextStyle(fontSize: 12, color: _border),
-          todayDecoration:
-              const BoxDecoration(color: _purple, shape: BoxShape.circle),
-          todayTextStyle: const TextStyle(
-              fontSize: 12, color: _white, fontWeight: FontWeight.w700),
-          selectedDecoration: BoxDecoration(
-              color: _purple.withOpacity(0.5), shape: BoxShape.circle),
-          selectedTextStyle: const TextStyle(fontSize: 12, color: _white),
-        ),
-        rowHeight: 36,
-        focusedDay: DateTime(2023, 10, 24),
-        firstDay: DateTime(2020),
-        lastDay: DateTime(2030),
-        selectedDayPredicate: (d) => isSameDay(d, DateTime(2023, 10, 24)),
-        onDaySelected: (selected, _) => _snack(
-            "Selected: ${selected.day} ${_monthName(selected.month)} ${selected.year}"),
-      ),
-    );
-  }
-
-  Widget _monthlyOverviewCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-            colors: [Color(0xff5B21B6), Color(0xff7C3AED)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Text("Monthly Overview",
-            style: TextStyle(
-                color: _white, fontWeight: FontWeight.w700, fontSize: 14)),
-        const SizedBox(height: 12),
-        _overviewRow("Avg. Attendance", "92.4%"),
-        const SizedBox(height: 4),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(4),
-          child: LinearProgressIndicator(
-              value: 0.924,
-              minHeight: 5,
-              backgroundColor: _white.withOpacity(0.2),
-              valueColor: const AlwaysStoppedAnimation<Color>(_white)),
-        ),
-        const SizedBox(height: 10),
-        _overviewRow("Total Overtime", "148h"),
-        const SizedBox(height: 14),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton(
-            style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: _white),
-              foregroundColor: _white,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-              padding: const EdgeInsets.symmetric(vertical: 9),
-            ),
-            onPressed: () => _snack("Downloading monthly report..."),
-            child: const Text("Download Monthly Report",
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-          ),
-        ),
-      ]),
-    );
-  }
-
-  Widget _overviewRow(String label, String value) => Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label,
-              style: TextStyle(color: _white.withOpacity(0.8), fontSize: 12)),
-          Text(value,
-              style: const TextStyle(
-                  color: _white, fontWeight: FontWeight.w700, fontSize: 14)),
-        ],
-      );
-
-  // ═══════════════════════════════════════════
-  //  HIRING TAB
-  // ═══════════════════════════════════════════
-
-  Widget _hiringMainTab() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(24, 18, 24, 0),
-          child: Row(children: [
-            const Text("Staff Hiring",
-                style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                    color: _textDark)),
-            const Spacer(),
-            _purpleBtn("+ Add Position", _showAddPositionModal),
-          ]),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: TabBar(
-            controller: _hiringSubTab,
-            labelColor: _purple,
-            unselectedLabelColor: _textMid,
-            indicatorColor: _purple,
-            indicatorWeight: 2.5,
-            isScrollable: true,
-            labelStyle:
-                const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-            unselectedLabelStyle:
-                const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-            tabs: const [Tab(text: "Job Positions"), Tab(text: "Applications")],
-          ),
-        ),
-        const Divider(height: 1, color: _border),
-        Expanded(
-          child: TabBarView(
-            controller: _hiringSubTab,
-            children: [_jobPositionsView(), _applicationsView()],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _payrollTab() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // 🔹 HEADER
-        Padding(
-          padding: const EdgeInsets.fromLTRB(24, 18, 24, 10),
-          child: Row(
-            children: [
-              const Text(
-                "Staff Payroll",
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w700,
-                  color: _textDark,
-                ),
-              ),
-              const Spacer(),
-              ElevatedButton.icon(
-                onPressed: _showAddPositionModal,
-                icon: const Icon(Icons.add, size: 18),
-                label: const Text("Add Payroll"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _purple,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // 🔹 SUMMARY CARDS (NEW)
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Row(
-            children: [
-              _summaryCard("Total", "₹1,20,000", Colors.blue),
-              _summaryCard("Paid", "₹80,000", Colors.green),
-              _summaryCard("Pending", "₹40,000", Colors.orange),
-            ],
-          ),
-        ),
-
-        const SizedBox(height: 12),
-
-        // 🔹 IMPROVED TAB BAR
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: TabBar(
-              controller: _hiringSubTab,
-              indicator: BoxDecoration(
-                color: _purple.withOpacity(0.15),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              labelColor: _purple,
-              unselectedLabelColor: _textMid,
-              tabs: const [
-                Tab(text: "Payroll"),
-                Tab(text: "History"),
-              ],
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 10),
-
-        // 🔹 CONTENT
-        Expanded(
-          child: TabBarView(
-            controller: _hiringSubTab,
-            children: [
-              _modernPayrollList(), // 👈 updated list
-              _applicationsView(), // keep your old one if needed
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _summaryCard(String title, String amount, Color color) {
-    return Expanded(
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 5),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.08),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title,
-                style: const TextStyle(fontSize: 12, color: Colors.black54)),
-            const SizedBox(height: 6),
-            Text(amount,
-                style: TextStyle(
-                    fontSize: 16, fontWeight: FontWeight.bold, color: color)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _modernPayrollList() {
-    return ListView.builder(
-      padding: const EdgeInsets.all(20),
-      itemCount: 10,
-      itemBuilder: (context, index) {
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 6,
-                offset: const Offset(0, 3),
-              )
-            ],
-          ),
-          child: Row(
-            children: [
-              CircleAvatar(
-                backgroundColor: _purple.withOpacity(0.1),
-                child: Icon(Icons.person, color: _purple),
-              ),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text("John Doe",
-                        style: TextStyle(fontWeight: FontWeight.w600)),
-                    SizedBox(height: 4),
-                    Text("UI Developer",
-                        style: TextStyle(fontSize: 12, color: Colors.grey)),
-                  ],
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: const [
-                  Text("₹25,000",
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                  SizedBox(height: 4),
-                  Text("Pending",
-                      style: TextStyle(fontSize: 12, color: Colors.orange)),
-                ],
-              )
-            ],
-          ),
-        );
-      },
-    );
-  }
 
   Widget _jobPositionsView() {
     return SingleChildScrollView(
