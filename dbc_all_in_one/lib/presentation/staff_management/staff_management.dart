@@ -971,7 +971,7 @@ class _StaffManagementState extends State<StaffManagement>
               ]
                   .map((t) => Padding(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 16),
+                            horizontal: 1, vertical: 1),
                         child: t,
                       ))
                   .toList(),
@@ -1022,7 +1022,7 @@ class _StaffManagementState extends State<StaffManagement>
   Widget _topBar() {
     return Container(
       color: _white,
-      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       child: Row(children: [
         Column(crossAxisAlignment: CrossAxisAlignment.start, children: const [
           Text("Studio Workspace",
@@ -1033,8 +1033,8 @@ class _StaffManagementState extends State<StaffManagement>
         ]),
         const Spacer(),
         Container(
-          width: 230,
-          height: 38,
+          width: 200,
+          height: 40,
           decoration: BoxDecoration(
               color: _bg,
               borderRadius: BorderRadius.circular(10),
@@ -1119,7 +1119,7 @@ class _StaffManagementState extends State<StaffManagement>
 
   Widget _jobPositionsView() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

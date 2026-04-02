@@ -48,7 +48,7 @@ class NotificationService {
             _isShowing = false;
 
             // 5-second gap between notifications
-            Future.delayed(const Duration(seconds: 10), () {
+            Future.delayed(const Duration(seconds: 30), () {
               _processQueue();
             });
           },
