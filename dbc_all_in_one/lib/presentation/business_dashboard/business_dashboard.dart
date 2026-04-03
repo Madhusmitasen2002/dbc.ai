@@ -468,6 +468,9 @@ class _BusinessDashboardState extends State<BusinessDashboard> {
       case 5:
         route = AppRoutes.orderManagementHub;
         break;
+      case 6:
+        route = AppRoutes.appWorkflowOverview;
+        break;
       default:
         route = null;
     }
@@ -711,9 +714,9 @@ class _BusinessDashboardState extends State<BusinessDashboard> {
       case 4:
         return const PaymentProcessingCenter();
       case 5:
-        return const MoreTabWidget();
+        return const ActiveOrdersPage();
       case 6:
-        return const OrderManagementHub();
+        return const MoreTabWidget();
       default:
         return const SizedBox();
     }

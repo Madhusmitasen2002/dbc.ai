@@ -22,9 +22,6 @@ class AppNotifications {
         return const Color(0xFFF59E0B); // amber
       case AppNotificationType.employee:
         return const Color.fromARGB(
-            255, 163, 31, 42); // cyan (better than random)
-      default:
-        return Colors.grey;
-    }
+            255, 163, 31, 42); }
   }
 }
