@@ -34,6 +34,20 @@ class DashboardTabWidget extends StatelessWidget {
       "trendUp": true,
       "route": "/order-management-hub",
     },
+    {
+      "title": "Cold calling",
+      "value": "12 New Leads",
+      "trend": "- 3 today",
+      "trendUp": false,
+      "route": "/order-management-hub",
+    },
+    {
+      "title": "Start Complain",
+      "value": "5 New",
+      "trend": "- 1 today",
+      "trendUp": false,
+      "route": "/order-management-hub",
+    },
   ];
 
   static final List<Map<String, dynamic>> _managementMetrics = [
@@ -108,37 +122,43 @@ class DashboardTabWidget extends StatelessWidget {
 
               // Welcome header
               SliverToBoxAdapter(
-                child: _WelcomeHeader(businessName: businessName),
+                child: _WelcomeHeader(
+                    businessName: businessName, isCompact: !isWide),
               ),
 
               // Alerts banner
               if (activeAlertsCount > 0)
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 5),
                     child: _AlertsBanner(alertsCount: activeAlertsCount),
                   ),
                 ),
 
-              // Primary metric cards
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    children: _primaryMetrics.map((m) {
-                      final isLast = m == _primaryMetrics.last;
-                      return Expanded(
-                        child: Padding(
-                          padding: EdgeInsets.only(right: isLast ? 0 : 12),
-                          child: _PrimaryMetricCard(metric: m),
-                        ),
-                      );
-                    }).toList(),
+              // Primary metric cards (responsive grid)
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                sliver: SliverGrid(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount:
+                        isWide ? (constraints.maxWidth > 1100 ? 4 : 2) : 1,
+                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 10,
+                    // On mobile (isWide == false) increase aspect ratio to
+                    // make tiles shorter (smaller height)
+                    childAspectRatio: isWide ? 2.6 : 3.5,
+                  ),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) {
+                      final m = _primaryMetrics[index];
+                      return _PrimaryMetricCard(metric: m, isCompact: !isWide);
+                    },
+                    childCount: _primaryMetrics.length,
                   ),
                 ),
               ),
 
-              const SliverToBoxAdapter(child: SizedBox(height: 24)),
+              const SliverToBoxAdapter(child: SizedBox(height: 18)),
 
               // Management header
               SliverToBoxAdapter(
@@ -147,7 +167,7 @@ class DashboardTabWidget extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                        const Text('Business Management',
+                      const Text('Business Management',
                           style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
@@ -175,6 +195,14 @@ class DashboardTabWidget extends StatelessWidget {
                     (context, index) {
                       final item = _managementMetrics[index];
 
+                      // make management cards more compact on narrow screens
+                      final cardPadding = isWide ? 14.0 : 10.0;
+                      final iconInnerPadding = isWide ? 10.0 : 8.0;
+                      final iconSize = isWide ? 26.0 : 20.0;
+                      final gap = isWide ? 14.0 : 10.0;
+                      final titleFontSize = isWide ? 14.0 : 12.0;
+                      final valueFontSize = isWide ? 13.0 : 11.0;
+
                       return Container(
                         margin: const EdgeInsets.only(bottom: 12),
                         child: InkWell(
@@ -183,7 +211,7 @@ class DashboardTabWidget extends StatelessWidget {
                           },
                           borderRadius: BorderRadius.circular(16),
                           child: Container(
-                            padding: const EdgeInsets.all(14),
+                            padding: EdgeInsets.all(cardPadding),
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(16),
@@ -191,14 +219,14 @@ class DashboardTabWidget extends StatelessWidget {
                                 BoxShadow(
                                   color: Colors.black.withOpacity(0.05),
                                   blurRadius: 10,
-                                  offset: Offset(0, 4),
+                                  offset: const Offset(0, 4),
                                 )
                               ],
                             ),
                             child: Row(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.all(10),
+                                  padding: EdgeInsets.all(iconInnerPadding),
                                   decoration: BoxDecoration(
                                     color: item['iconBg'],
                                     borderRadius: BorderRadius.circular(12),
@@ -206,10 +234,10 @@ class DashboardTabWidget extends StatelessWidget {
                                   child: Icon(
                                     item['icon'],
                                     color: item['color'],
-                                    size: 26,
+                                    size: iconSize,
                                   ),
                                 ),
-                                const SizedBox(width: 14),
+                                SizedBox(width: gap),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
@@ -217,16 +245,16 @@ class DashboardTabWidget extends StatelessWidget {
                                     children: [
                                       Text(
                                         item['title'],
-                                        style: const TextStyle(
-                                          fontSize: 14,
+                                        style: TextStyle(
+                                          fontSize: titleFontSize,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
-                                      const SizedBox(height: 4),
+                                      SizedBox(height: isWide ? 4 : 6),
                                       Text(
                                         item['value'],
                                         style: TextStyle(
-                                          fontSize: 13,
+                                          fontSize: valueFontSize,
                                           color: item['valueColor'],
                                           fontWeight: FontWeight.w500,
                                         ),
@@ -270,16 +298,20 @@ class DashboardTabWidget extends StatelessWidget {
 
 // ── Welcome header ──────────────────────────────────────────
 class _WelcomeHeader extends StatelessWidget {
-  const _WelcomeHeader({required this.businessName});
+  const _WelcomeHeader({required this.businessName, this.isCompact = false});
 
   final String businessName;
+  final bool isCompact;
 
   @override
   Widget build(BuildContext context) {
+    final double containerPadding = isCompact ? 14.0 : 18.0;
+    final double titleSize = isCompact ? 18.0 : 20.0;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
       child: Container(
-        padding: const EdgeInsets.all(18),
+        padding: EdgeInsets.all(containerPadding),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
             colors: [Color(0xFF6B46C1), Color(0xFF8B5CF6)],
@@ -302,8 +334,8 @@ class _WelcomeHeader extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(businessName,
-                      style: const TextStyle(
-                          fontSize: 20,
+                      style: TextStyle(
+                          fontSize: titleSize,
                           fontWeight: FontWeight.w700,
                           color: Colors.white)),
                 ],
@@ -346,24 +378,30 @@ class _CircleIconButton extends StatelessWidget {
               offset: const Offset(0, 2))
         ],
       ),
-      child: IconButton(
-          icon: Icon(icon, color: iconColor),
-          onPressed: onPressed),
+      child:
+          IconButton(icon: Icon(icon, color: iconColor), onPressed: onPressed),
     );
   }
 }
 
 // ── Primary metric card ──────────────────────────────────────
 class _PrimaryMetricCard extends StatelessWidget {
-  const _PrimaryMetricCard({required this.metric});
+  const _PrimaryMetricCard({required this.metric, this.isCompact = false});
   final Map<String, dynamic> metric;
+  final bool isCompact;
 
   @override
   Widget build(BuildContext context) {
+    final double padding = isCompact ? 12.0 : 16.0;
+    final double titleSize = isCompact ? 12.0 : 13.0;
+    final double valueSize = isCompact ? 18.0 : 22.0;
+    final double trendSize = isCompact ? 11.0 : 12.0;
+    final double iconSize = isCompact ? 18.0 : 20.0;
+
     return GestureDetector(
       onTap: () => Navigator.pushNamed(context, metric['route']),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(padding),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -381,35 +419,35 @@ class _PrimaryMetricCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(metric['title'],
-                    style: const TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFF6B6B6B),
+                    style: TextStyle(
+                        fontSize: titleSize,
+                        color: const Color(0xFF6B6B6B),
                         fontWeight: FontWeight.w500)),
                 Icon(
                   metric['trendUp'] == true
                       ? Icons.trending_up
                       : Icons.restaurant,
                   color: const Color(0xFF6B46C1),
-                  size: 20,
+                  size: iconSize,
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: isCompact ? 6 : 8),
             Text(metric['value'],
-                style: const TextStyle(
-                    fontSize: 22,
+                style: TextStyle(
+                    fontSize: valueSize,
                     fontWeight: FontWeight.w800,
-                    color: Color(0xFF1A1A1A))),
-            const SizedBox(height: 6),
+                    color: const Color(0xFF1A1A1A))),
+            SizedBox(height: isCompact ? 4 : 6),
             Row(
               children: [
-                const Icon(Icons.arrow_upward,
-                    size: 12, color: Color(0xFF6B46C1)),
+                Icon(Icons.arrow_upward,
+                    size: trendSize, color: const Color(0xFF6B46C1)),
                 const SizedBox(width: 2),
                 Text(metric['trend'],
-                    style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFF6B46C1),
+                    style: TextStyle(
+                        fontSize: trendSize,
+                        color: const Color(0xFF6B46C1),
                         fontWeight: FontWeight.w600)),
               ],
             ),
