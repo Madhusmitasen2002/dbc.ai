@@ -211,11 +211,7 @@ class _AppWorkflowOverviewState extends State<AppWorkflowOverview> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        leading: DBCBackButton(
-          onPressed: () => Navigator.maybePop(context),
-          iconColor: Colors.grey[900]!,
-          backgroundColor: Colors.white,
-        ),
+        leading: const DBCBackButton(),
         actions: [
           IconButton(
             icon: Icon(Icons.help_outline, color: Colors.grey[700]),

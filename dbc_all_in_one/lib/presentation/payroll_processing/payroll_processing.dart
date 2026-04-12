@@ -17,7 +17,6 @@ import './widgets/pay_period_selector_widget.dart';
 import './widgets/payroll_card_widget.dart';
 import './widgets/payroll_summary_widget.dart';
 import './widgets/search_filter_widget.dart';
-import '../../widgets/dbc_back_button.dart';
 
 class PayrollProcessing extends StatefulWidget {
   const PayrollProcessing({super.key});
@@ -497,12 +496,6 @@ class _PayrollProcessingState extends State<PayrollProcessing> {
     return Scaffold(
       appBar: CustomAppBar(
         title: 'Payroll Processing',
-        leading: DBCBackButton(
-          onPressed: () => Navigator.maybePop(context),
-          iconColor: theme.colorScheme.onSurface,
-          backgroundColor: Colors.transparent,
-          iconSize: 24,
-        ),
         actions: [
           if (_isMultiSelectMode)
             IconButton(

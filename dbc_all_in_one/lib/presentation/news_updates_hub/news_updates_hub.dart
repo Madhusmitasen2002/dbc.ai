@@ -285,11 +285,7 @@ class _NewsUpdatesHubState extends State<NewsUpdatesHub> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: DBCBackButton(
-          onPressed: () => Navigator.maybePop(context),
-          iconColor: const Color(0xFF1A1A1A),
-          backgroundColor: Colors.white,
-        ),
+        leading: const DBCBackButton(),
         titleSpacing: 16,
         title: const Text(
           'News & Updates',

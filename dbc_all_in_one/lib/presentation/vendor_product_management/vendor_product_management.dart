@@ -346,11 +346,7 @@ class _VendorProductManagementState extends State<VendorProductManagement> {
                 children: [
                   Row(
                     children: [
-                      DBCBackButton(
-                        onPressed: () => Navigator.pop(context),
-                        iconColor: theme.colorScheme.onSurface,
-                        backgroundColor: Colors.white,
-                      ),
+                      const DBCBackButton(),
                       SizedBox(width: 2.w),
                       Text(
                         'Vendor Management',

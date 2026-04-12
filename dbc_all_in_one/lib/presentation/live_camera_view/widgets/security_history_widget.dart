@@ -3,6 +3,7 @@
 // Import and use anywhere: push as a route, embed in a sheet, or drop inline.
 
 import 'package:flutter/material.dart';
+import '../../../widgets/dbc_back_button.dart';
 import 'security_event_model.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -42,11 +43,7 @@ class SecurityHistoryPage extends StatelessWidget {
         backgroundColor: Colors.white,
         elevation: 0,
         surfaceTintColor: Colors.white,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded,
-              size: 17, color: Color(0xFF1A1A1A)),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: const DBCBackButton(),
         title: const Text(
           'Security History',
           style: TextStyle(
@@ -140,8 +137,7 @@ class _SecurityHistoryBodyState extends State<_SecurityHistoryBody>
     final yesterday = today.subtract(const Duration(days: 1));
     final result = <String, List<SecurityEvent>>{};
     for (final e in _filtered) {
-      final d =
-          DateTime(e.timestamp.year, e.timestamp.month, e.timestamp.day);
+      final d = DateTime(e.timestamp.year, e.timestamp.month, e.timestamp.day);
       final key = d == today
           ? 'Today'
           : d == yesterday
@@ -155,8 +151,7 @@ class _SecurityHistoryBodyState extends State<_SecurityHistoryBody>
   @override
   void initState() {
     super.initState();
-    _tabController =
-        TabController(length: _filters.length, vsync: this);
+    _tabController = TabController(length: _filters.length, vsync: this);
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
         setState(() => _activeFilter = _filters[_tabController.index]);
@@ -192,7 +187,8 @@ class _SecurityHistoryBodyState extends State<_SecurityHistoryBody>
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
       child: Row(children: [
         Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(
               '${widget.events.length} Total Events',
               style: const TextStyle(
@@ -210,7 +206,8 @@ class _SecurityHistoryBodyState extends State<_SecurityHistoryBody>
             ),
           ]),
         ),
-        Row(children: [
+        Row(
+            children: [
           SecurityEventType.person,
           SecurityEventType.vehicle,
           SecurityEventType.motion,
@@ -314,16 +311,13 @@ class _StatChip extends StatelessWidget {
           width: 34,
           height: 34,
           decoration: BoxDecoration(
-              color: dummy.color.withOpacity(0.10),
-              shape: BoxShape.circle),
+              color: dummy.color.withOpacity(0.10), shape: BoxShape.circle),
           child: Icon(dummy.icon, color: dummy.color, size: 16),
         ),
         const SizedBox(height: 3),
         Text('$count',
             style: TextStyle(
-                color: dummy.color,
-                fontSize: 13,
-                fontWeight: FontWeight.w800)),
+                color: dummy.color, fontSize: 13, fontWeight: FontWeight.w800)),
         Text(dummy.typeLabel,
             style: const TextStyle(
                 color: Color(0xFFAAAAAA),
@@ -388,9 +382,7 @@ class _EventTile extends StatelessWidget {
         margin: const EdgeInsets.fromLTRB(12, 3, 12, 3),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
         decoration: BoxDecoration(
-            color: event.isResolved
-                ? const Color(0xFFFAFAFA)
-                : Colors.white,
+            color: event.isResolved ? const Color(0xFFFAFAFA) : Colors.white,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
                 color: event.isResolved
@@ -417,33 +409,32 @@ class _EventTile extends StatelessWidget {
           const SizedBox(width: 12),
           // Content
           Expanded(
-            child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(children: [
-                    _TypePill(event: event),
-                    const SizedBox(width: 6),
-                    Expanded(
-                        child: Text(event.cameraName,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                                color: Color(0xFF555555),
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500))),
-                  ]),
-                  const SizedBox(height: 4),
-                  Text(event.description,
-                      style: const TextStyle(
-                          color: Color(0xFF333333),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis),
-                  const SizedBox(height: 2),
-                  Text(event.zone,
-                      style: const TextStyle(
-                          color: Color(0xFFAAAAAA), fontSize: 10)),
-                ]),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Row(children: [
+                _TypePill(event: event),
+                const SizedBox(width: 6),
+                Expanded(
+                    child: Text(event.cameraName,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            color: Color(0xFF555555),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500))),
+              ]),
+              const SizedBox(height: 4),
+              Text(event.description,
+                  style: const TextStyle(
+                      color: Color(0xFF333333),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis),
+              const SizedBox(height: 2),
+              Text(event.zone,
+                  style:
+                      const TextStyle(color: Color(0xFFAAAAAA), fontSize: 10)),
+            ]),
           ),
           const SizedBox(width: 10),
           // Right column
@@ -457,8 +448,7 @@ class _EventTile extends StatelessWidget {
             if (event.confidence != null) ...[
               const SizedBox(height: 5),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
                     color: event.color.withOpacity(0.10),
                     borderRadius: BorderRadius.circular(5)),

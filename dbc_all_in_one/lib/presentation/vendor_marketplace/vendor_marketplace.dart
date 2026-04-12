@@ -3,8 +3,8 @@ import 'package:sizer/sizer.dart';
 
 import '../../core/app_export.dart';
 import '../../widgets/custom_bottom_bar.dart';
-import '../../widgets/custom_icon_widget.dart';
 import '../../widgets/dbc_back_button.dart';
+import '../../widgets/custom_icon_widget.dart';
 import './widgets/category_chip_widget.dart';
 import './widgets/search_header_widget.dart';
 import './widgets/vendor_card_widget.dart';
@@ -182,13 +182,9 @@ class _VendorMarketplaceState extends State<VendorMarketplace>
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
+        leading: const DBCBackButton(),
         backgroundColor: theme.colorScheme.surface,
         elevation: 0,
-        leading: DBCBackButton(
-          onPressed: () => Navigator.maybePop(context),
-          iconColor: theme.colorScheme.onSurface,
-          backgroundColor: Colors.white,
-        ),
         title: Text(
           'Vendor Marketplace',
           style: theme.textTheme.titleLarge?.copyWith(

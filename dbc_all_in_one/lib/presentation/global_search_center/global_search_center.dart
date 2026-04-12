@@ -175,11 +175,7 @@ class _GlobalSearchCenterState extends State<GlobalSearchCenter> {
                 children: [
                   Row(
                     children: [
-                      DBCBackButton(
-                        onPressed: () => Navigator.pop(context),
-                        iconColor: Colors.black87,
-                        backgroundColor: Colors.white,
-                      ),
+                      const DBCBackButton(),
                       Expanded(
                         child: Container(
                           decoration: BoxDecoration(

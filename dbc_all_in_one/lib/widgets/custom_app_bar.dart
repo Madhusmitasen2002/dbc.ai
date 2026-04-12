@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'dbc_back_button.dart';
+
 /// Custom app bar widget for DBC.AI business management app
 /// Implements clean, purposeful design with strategic white space
 /// Supports multiple variants for different screen contexts
@@ -200,12 +202,18 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       return leading;
     }
 
-    if (automaticallyImplyLeading && Navigator.of(context).canPop()) {
-      return IconButton(
-        icon: const Icon(Icons.arrow_back),
-        color: foregroundColor,
-        onPressed: onBackPressed ?? () => Navigator.of(context).pop(),
-        tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+    // Show the DBCBackButton when:
+    //  - a custom leading widget was provided (handled above), or
+    //  - `automaticallyImplyLeading` is true AND either the navigator
+    //    canPop() (normal back stack) OR we're on a wide/desktop layout.
+    // Showing the back button on desktop keeps the UI consistent when
+    // pages are displayed inside larger layouts (sidebar + content).
+    final isDesktop = MediaQuery.of(context).size.width > 700;
+    final canPop = Navigator.of(context).canPop();
+
+    if (automaticallyImplyLeading && (canPop || isDesktop)) {
+      return DBCBackButton(
+        onPressed: onBackPressed,
       );
     }
 

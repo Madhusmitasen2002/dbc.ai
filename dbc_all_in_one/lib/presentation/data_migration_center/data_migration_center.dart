@@ -112,11 +112,7 @@ class _DataMigrationCenterState extends State<DataMigrationCenter> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: DBCBackButton(
-          onPressed: () => Navigator.maybePop(context),
-          iconColor: Colors.black87,
-          backgroundColor: Colors.white,
-        ),
+        leading: const DBCBackButton(),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
