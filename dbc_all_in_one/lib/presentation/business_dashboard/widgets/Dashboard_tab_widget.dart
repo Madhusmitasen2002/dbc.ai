@@ -41,7 +41,7 @@ class DashboardTabWidget extends StatelessWidget {
       "title": "Finance Manager",
       "value": "\$2,450.00",
       "icon": Icons.attach_money,
-      "color": Color.fromARGB(255, 70, 193, 101),
+      "color": Color(0xFF6B46C1),
       "iconBg": Color(0xFFEDE9FE),
       "valueColor": Color.fromARGB(255, 70, 193, 101),
       "route": "/payment-processing-center",
@@ -50,7 +50,7 @@ class DashboardTabWidget extends StatelessWidget {
       "title": "Bussiness Manager",
       "value": "Manage your business details",
       "icon": Icons.business,
-      "color": Color.fromARGB(255, 170, 193, 70),
+      "color": Color(0xFF6B46C1),
       "iconBg": Color(0xFFEDE9FE),
       "valueColor": Color(0xFF1A1A1A),
       "route": "/order-management-hub",
@@ -68,7 +68,7 @@ class DashboardTabWidget extends StatelessWidget {
       "title": "Inventory Manager",
       "value": "12 Low Items",
       "icon": Icons.inventory_2,
-      "color": Color(0xFFF59E0B),
+      "color": Color(0xFF6B46C1),
       "iconBg": Color(0xFFFEF3C7),
       "valueColor": Color(0xFFF59E0B),
       "route": "/inventory-management",
@@ -77,19 +77,19 @@ class DashboardTabWidget extends StatelessWidget {
       "title": "Security Manager",
       "value": "Active",
       "icon": Icons.verified_user,
-      "color": Color(0xFF10B981),
+      "color": Color(0xFF6B46C1),
       "iconBg": Color(0xFFD1FAE5),
       "valueColor": Color(0xFF10B981),
       "route": "/live-camera-view",
     },
     {
-      "title": "News/Blog",
+      "title": "Marketing Management",
       "value": "8 New Updates",
       "icon": Icons.article,
       "color": Color(0xFF6B46C1),
       "iconBg": Color(0xFFEDE9FE),
       "valueColor": Color(0xFF6B6B6B),
-      "route": "/Marketing Manager",
+      "route": AppRoutes.newsUpdatesHub,
     },
   ];
 
@@ -147,7 +147,7 @@ class DashboardTabWidget extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text('Bussiness Management',
+                        const Text('Business Management',
                           style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
@@ -278,48 +278,66 @@ class _WelcomeHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Welcome back,',
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400,
-                        color: Color(0xFF6B6B6B))),
-                const SizedBox(height: 2),
-                Text(businessName,
-                    style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF6B46C1))),
-              ],
+      child: Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF6B46C1), Color(0xFF8B5CF6)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.12),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
             ),
-          ),
-          _CircleIconButton(
-            icon: Icons.search,
-            onPressed: () =>
-                Navigator.pushNamed(context, AppRoutes.globalSearchCenter),
-          ),
-        ],
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(businessName,
+                      style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white)),
+                ],
+              ),
+            ),
+            _CircleIconButton(
+              icon: Icons.search,
+              onPressed: () =>
+                  Navigator.pushNamed(context, AppRoutes.globalSearchCenter),
+              iconColor: Colors.white,
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
 class _CircleIconButton extends StatelessWidget {
-  const _CircleIconButton({required this.icon, required this.onPressed});
+  const _CircleIconButton({
+    required this.icon,
+    required this.onPressed,
+    this.iconColor = Colors.white,
+  });
 
   final IconData icon;
   final VoidCallback onPressed;
+  final Color iconColor;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.white.withOpacity(0.16),
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
@@ -329,7 +347,7 @@ class _CircleIconButton extends StatelessWidget {
         ],
       ),
       child: IconButton(
-          icon: Icon(icon, color: const Color(0xFF1A1A1A)),
+          icon: Icon(icon, color: iconColor),
           onPressed: onPressed),
     );
   }
@@ -386,12 +404,12 @@ class _PrimaryMetricCard extends StatelessWidget {
             Row(
               children: [
                 const Icon(Icons.arrow_upward,
-                    size: 12, color: Color(0xFF10B981)),
+                    size: 12, color: Color(0xFF6B46C1)),
                 const SizedBox(width: 2),
                 Text(metric['trend'],
                     style: const TextStyle(
                         fontSize: 12,
-                        color: Color(0xFF10B981),
+                        color: Color(0xFF6B46C1),
                         fontWeight: FontWeight.w600)),
               ],
             ),

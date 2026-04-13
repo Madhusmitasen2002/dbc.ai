@@ -308,7 +308,7 @@ class BusinessDashboard extends StatefulWidget {
 class _BusinessDashboardState extends State<BusinessDashboard> {
   late int _currentNavIndex;
 
-  final String businessName = "DBC Cafe & Bistro";
+  final String businessName = "Your AI Business Consultancy!";
 
   final SecurityAlertsService _alertsService = SecurityAlertsService();
   final SessionManager _sessionManager = SessionManager();
