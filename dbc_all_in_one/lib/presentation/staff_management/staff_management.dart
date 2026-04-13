@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../widgets/dbc_back_button.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'widgets/staff_widget.dart';
 import 'widgets/attendance_widget.dart';
@@ -1025,8 +1024,20 @@ class _StaffManagementState extends State<StaffManagement>
       color: _white,
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       child: Row(children: [
-        // Back Button — use shared DBCBackButton for consistent behavior
-        const DBCBackButton(),
+        // Back Button
+        GestureDetector(
+          onTap: () => Navigator.pop(context),
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: _bg,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: _border),
+            ),
+            child: const Icon(Icons.arrow_back, size: 18, color: _textMid),
+          ),
+        ),
         const SizedBox(width: 12),
         Column(crossAxisAlignment: CrossAxisAlignment.start, children: const [
           Text("Studio Workspace",

@@ -394,12 +394,7 @@ class _InventoryManagementState extends State<InventoryManagement> {
           // Back Button (use consistent DBCBackButton with smart navigation)
           const DBCBackButton(),
           const SizedBox(width: 12),
-          const Text('Stock Inventory',
-              style: TextStyle(
-                  color: Color(0xFF1A1A1A),
-                  fontSize: 17,
-                  fontWeight: FontWeight.w700)),
-          const SizedBox(width: 12),
+
           Expanded(
               child: Container(
             height: 38,
