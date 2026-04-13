@@ -217,12 +217,7 @@ class _PaymentProcessingCenterState extends State<PaymentProcessingCenter>
         children: [
           // Use shared back button for consistent appearance and a11y
           // Matches security styling while preserving responsive tap target
-          DBCBackButton(
-            onPressed: () => Navigator.maybePop(context),
-            backgroundColor: _bg,
-            iconColor: const Color(0xFF1A1A1A),
-            iconSize: 16.0,
-          ),
+          const DBCBackButton(),
 
           const SizedBox.shrink(),
           const SizedBox(width: 12),

@@ -72,12 +72,7 @@ class _GSTFilingCenterState extends State<GSTFilingCenter> {
               floating: false,
               backgroundColor: theme.colorScheme.primary,
               expandedHeight: 12.h,
-              leading: DBCBackButton(
-                onPressed: () => Navigator.maybePop(context),
-                iconColor: theme.colorScheme.onPrimary,
-                backgroundColor: Colors.transparent,
-                iconSize: 24,
-              ),
+              leading: const DBCBackButton(),
               flexibleSpace: FlexibleSpaceBar(
                 title: Text(
                   'GST Filing Center',

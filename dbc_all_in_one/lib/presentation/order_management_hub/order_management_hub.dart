@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../widgets/dbc_back_button.dart';
 
 // ── Palette ───────────────────────────────────────────────────────────────────
 const _purple = Color(0xff6D28D9);
@@ -287,22 +288,8 @@ class _TopNav extends StatelessWidget {
           // Title row + action buttons
           Row(
             children: [
-              // Back button
-              GestureDetector(
-                onTap: () => Navigator.maybePop(context),
-                child: Container(
-                  width: 34,
-                  height: 34,
-                  margin: const EdgeInsets.only(right: 10),
-                  decoration: BoxDecoration(
-                    color: _cardBg,
-                    borderRadius: BorderRadius.circular(9),
-                    border: Border.all(color: _border),
-                  ),
-                  child: const Icon(Icons.arrow_back_rounded,
-                      size: 18, color: _textDark),
-                ),
-              ),
+              // Back button — use shared DBCBackButton for consistency
+              const DBCBackButton(),
               const Expanded(
                 child: Text(
                   'Active Orders',

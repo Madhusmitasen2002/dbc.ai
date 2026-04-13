@@ -4,6 +4,7 @@ import 'package:sizer/sizer.dart';
 import '../../core/app_export.dart';
 import '../../widgets/custom_app_bar.dart';
 import '../../widgets/custom_bottom_bar.dart';
+import '../../widgets/dbc_back_button.dart';
 
 class HiringMarketplace extends StatefulWidget {
   const HiringMarketplace({super.key});
@@ -188,7 +189,24 @@ class _HiringMarketplaceState extends State<HiringMarketplace>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _bg,
-      // No custom AppBar — parent Staff Management scaffold owns it
+      appBar: AppBar(
+        backgroundColor: _surface,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        leading: const DBCBackButton(),
+        title: const Text(
+          'Hiring Marketplace',
+          style: TextStyle(
+            color: _dark,
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+          ),
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(color: const Color(0xFFEEEEEE), height: 1),
+        ),
+      ),
       body: Column(children: [
         // ── Sub-tab bar: Job Positions / Applications ──
         Container(

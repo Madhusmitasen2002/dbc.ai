@@ -391,24 +391,14 @@ class _InventoryManagementState extends State<InventoryManagement> {
         color: Colors.white,
         padding: const EdgeInsets.fromLTRB(16, 12, 12, 10),
         child: Row(children: [
-          // Back Button
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: _bg,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: _border),
-              ),
-              child: const Icon(Icons.arrow_back, size: 18, color: Color(0xFF9E9E9E)),
-            ),
-          ),
+          // Back Button (use consistent DBCBackButton with smart navigation)
+          const DBCBackButton(),
           const SizedBox(width: 12),
           const Text('Stock Inventory',
               style: TextStyle(
-                  color: Color(0xFF1A1A1A), fontSize: 17, fontWeight: FontWeight.w700)),
+                  color: Color(0xFF1A1A1A),
+                  fontSize: 17,
+                  fontWeight: FontWeight.w700)),
           const SizedBox(width: 12),
           Expanded(
               child: Container(
@@ -566,7 +556,9 @@ class _InventoryManagementState extends State<InventoryManagement> {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const Text('Stock Health',
               style: TextStyle(
-                  fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1A1A1A))),
           const SizedBox(height: 14),
           Center(
               child: SizedBox(
@@ -615,7 +607,9 @@ class _InventoryManagementState extends State<InventoryManagement> {
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const Text('Weekly Usage',
               style: TextStyle(
-                  fontSize: 14, fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF1A1A1A))),
           const SizedBox(height: 2),
           const Text('Ingredient consumption',
               style: TextStyle(fontSize: 10, color: Color(0xFF9E9E9E))),
@@ -659,7 +653,9 @@ class _InventoryManagementState extends State<InventoryManagement> {
       const Spacer(),
       Text('$count',
           style: const TextStyle(
-              fontSize: 12, fontWeight: FontWeight.w700, color: Color(0xFF1A1A1A))),
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF1A1A1A))),
     ]);
   }
 

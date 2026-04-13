@@ -408,11 +408,7 @@ class _LiveCameraViewState extends State<LiveCameraView>
         child: Padding(
           padding: const EdgeInsets.fromLTRB(8, 10, 12, 10),
           child: Row(children: [
-            DBCBackButton(
-              onPressed: () => Navigator.pop(context),
-              iconColor: _dark,
-              backgroundColor: _surface,
-            ),
+            const DBCBackButton(),
             const SizedBox(width: 10),
             Expanded(
                 child: Column(

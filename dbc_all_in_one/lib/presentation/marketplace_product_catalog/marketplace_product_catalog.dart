@@ -102,11 +102,7 @@ class _MarketplaceProductCatalogState extends State<MarketplaceProductCatalog> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        leading: DBCBackButton(
-          onPressed: () => Navigator.maybePop(context),
-          iconColor: theme.colorScheme.onSurface,
-          backgroundColor: Colors.white,
-        ),
+        leading: const DBCBackButton(),
         title: Text(
           'Marketplace',
           style: theme.textTheme.titleLarge?.copyWith(

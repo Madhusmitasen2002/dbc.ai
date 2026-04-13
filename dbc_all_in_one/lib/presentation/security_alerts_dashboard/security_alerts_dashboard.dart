@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
-import '../../widgets/dbc_back_button.dart';
 import '../../routes/app_routes.dart';
 
 import '../../services/security_alerts_service.dart';
@@ -258,18 +257,6 @@ class _SecurityAlertsDashboardState extends State<SecurityAlertsDashboard> {
       backgroundColor: Colors.white,
       elevation: 0,
       surfaceTintColor: Colors.transparent,
-      leading: DBCBackButton(
-        onPressed: () async {
-          final didPop = await Navigator.maybePop(context);
-          if (!didPop) {
-            Navigator.pushReplacementNamed(
-                context, AppRoutes.businessDashboard);
-          }
-        },
-        backgroundColor: Colors.white,
-        iconColor: const Color(0xFF1A1A1A),
-        iconSize: 20,
-      ),
       title: Row(
         children: [
           Container(

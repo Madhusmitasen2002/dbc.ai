@@ -3,6 +3,7 @@ import 'package:sizer/sizer.dart';
 
 import '../../services/gst_service.dart';
 import '../../widgets/custom_app_bar.dart';
+import '../../widgets/dbc_back_button.dart';
 import './widgets/date_range_picker_widget.dart';
 import './widgets/export_button_widget.dart';
 import './widgets/filing_history_card_widget.dart';
@@ -146,7 +147,7 @@ class _GSTReportsScreenState extends State<GSTReportsScreen> {
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: CustomAppBar(
         title: 'GST Reports',
-        onBackPressed: () => Navigator.pop(context),
+        leading: const DBCBackButton(),
       ),
       body: RefreshIndicator(
         onRefresh: _loadFilingHistory,

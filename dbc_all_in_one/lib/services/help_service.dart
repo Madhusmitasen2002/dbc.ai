@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/dbc_back_button.dart';
 
 class HelpService {
   static final HelpService _instance = HelpService._internal();
@@ -347,6 +348,7 @@ class FullScreenHelpView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: const DBCBackButton(),
         title: Text('${screenHelp.screenName} Help'),
         elevation: 0,
       ),
@@ -493,40 +495,40 @@ class FullScreenHelpView extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     ...task.steps.asMap().entries.map(
-                      (entry) => Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: 24,
-                              height: 24,
-                              decoration: BoxDecoration(
-                                color: Colors.blue[700],
-                                shape: BoxShape.circle,
-                              ),
-                              child: Center(
-                                child: Text(
-                                  '${entry.key + 1}',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
+                          (entry) => Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  width: 24,
+                                  height: 24,
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue[700],
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      '${entry.key + 1}',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    entry.value,
+                                    style: const TextStyle(fontSize: 14),
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                entry.value,
-                                style: const TextStyle(fontSize: 14),
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
-                      ),
-                    ),
                   ],
                 ),
               ),

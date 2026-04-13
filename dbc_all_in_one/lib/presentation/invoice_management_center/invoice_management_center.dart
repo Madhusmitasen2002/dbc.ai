@@ -143,13 +143,7 @@ class _InvoiceManagementCenterState extends State<InvoiceManagementCenter> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: DBCBackButton(
-          onPressed: () => Navigator.maybePop(context),
-          iconColor: Theme.of(context).canvasColor == Colors.white
-              ? Colors.black87
-              : Colors.white,
-          backgroundColor: Colors.transparent,
-        ),
+        leading: const DBCBackButton(),
         title: Text(
           'Invoice Management',
           style: TextStyle(
