@@ -253,7 +253,25 @@ class _NewsUpdatesHubState extends State<NewsUpdatesHub> {
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 780),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                      child: Row(
+                        children: const [
+                          DBCBackButton(),
+                          SizedBox(width: 12),
+                          Text(
+                            'Market Management',
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1A1A1A),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                     NewsSearchBarWidget(
                       controller: _searchController,
                       onChanged: _onSearchChanged,
@@ -288,7 +306,7 @@ class _NewsUpdatesHubState extends State<NewsUpdatesHub> {
         leading: const DBCBackButton(),
         titleSpacing: 16,
         title: const Text(
-          'News & Updates',
+          'Market Management',
           style: TextStyle(
             color: Color(0xFF1A1A1A),
             fontWeight: FontWeight.w700,
